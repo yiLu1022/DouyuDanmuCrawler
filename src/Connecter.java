@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConnectionUtil {
+public class Connecter {
 
     public static String Connect(String address){
         HttpURLConnection conn = null;
@@ -49,55 +49,5 @@ public class ConnectionUtil {
         }
 
         return stringBuffer.toString();
-    }
-    
-    public static List<String> reformat(String log){
-    	List<String> lines = new ArrayList<String>();
-    	Pattern pattern = Pattern.compile("<+.*?>");
-    	Matcher match = pattern.matcher(log);
-    	while(match.find()){
-    		lines.add(match.group());
-    	}
-    	
-    	return lines;
-    }
-    
-    public static List<String> search(String log, String content){
-    	List<String> lines = new ArrayList<String>();
-    	Pattern pattern = Pattern.compile(content);
-    	Matcher match = pattern.matcher(log);
-    	while(match.find()){
-    		lines.add(match.group());
-    	}
-    	return lines;
-    	
-    }
-    
-    public static void main(String args[]){
-    	String log = ConnectionUtil.Connect("https://tieba.baidu.com/f?kw=%E6%8A%97%E5%8E%8B&ie=utf-8");
-    	FileOutputStream os;
-    	OutputStreamWriter pw = null;
-    	try {
-    		File file = new File("cat.log");
-    		file.createNewFile();
-			os = new FileOutputStream(file);
-			pw = new OutputStreamWriter(os);
-			List<String> strs = search(log,"回复\">\\d*<");
-			for(String str: strs){
-				pw.write(str);
-				pw.write("\r\n");
-			}
-/*			pw.write(log);
-			pw.flush();*/
-			pw.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	
     }
 }
