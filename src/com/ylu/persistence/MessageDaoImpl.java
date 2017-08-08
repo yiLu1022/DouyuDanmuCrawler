@@ -8,8 +8,8 @@ public class MessageDaoImpl implements MessageDAOMapper{
 	private final String STRING_INSERT_MESSAGE = "com.ylu.persistence.MessageDAOMapper.insert";
 	private final String STRING_CREATE_TABLE = "com.ylu.persistence.MessageDAOMapper.createTable";
 	
-	
 	private SqlSession session;
+	
 	public MessageDaoImpl(){
 		session = MyBatisSession.getInstance();
 		session.update(STRING_CREATE_TABLE);

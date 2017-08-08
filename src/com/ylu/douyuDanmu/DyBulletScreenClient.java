@@ -4,12 +4,15 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.ylu.beans.Message;
 import com.ylu.beans.Message.Type;
+import com.ylu.douyuFormat.Formating;
 import com.ylu.douyuFormat.Logger;
 
 
@@ -40,19 +43,19 @@ public class DyBulletScreenClient
     //获取弹幕线程及心跳线程运行和停止标记
     private boolean readyFlag = false;
     
-    private DyBulletScreenClient(){}
+    public DyBulletScreenClient(){}
     
     /**
      * 单例获取方法，客户端单例模式访问
      * @return
      */
-    public static DyBulletScreenClient getInstance(){
+/*    public static DyBulletScreenClient getInstance(){
     	if(null == instance){
     		instance = new DyBulletScreenClient();
     	}
     	return instance;
     }
-    
+    */
     /**
      * 客户端初始化，连接弹幕服务器并登陆房间及弹幕池
      * @param roomId 房间ID
@@ -126,7 +129,7 @@ public class DyBulletScreenClient
     		
     		//解析服务器返回的登录信息
     		if(DyMessage.parseLoginRespond(recvByte)){
-    			Logger.v("Receive login response successfully!");
+    			Logger.v("Room %d login!",roomId);
             } else {
             	Logger.v("Receive login response failed!");
             }
@@ -149,7 +152,7 @@ public class DyBulletScreenClient
     		//想弹幕服务器发送加入弹幕池请求数据
     		bos.write(joinGroupRequest, 0, joinGroupRequest.length);
             bos.flush();
-            Logger.v("Send join group request successfully!");
+            Logger.v("join Room %d group request successfully!",roomId);
             
     	} catch(Exception e){
     		e.printStackTrace();
@@ -180,69 +183,84 @@ public class DyBulletScreenClient
     /**
      * 获取服务器返回信息
      */
-    public Message getServerMsg(){
+    public Collection<Message> getServerMsg(){
     	//初始化获取弹幕服务器返回信息包大小
     	byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     	//定义服务器返回信息的字符串
     	String dataStr;
+    	Collection<Message> messages = new ArrayList<Message>();
 		try {
 			//读取服务器返回信息，并获取返回信息的整体字节长度
 			int recvLen = bis.read(recvByte, 0, recvByte.length);
 			
-			//根据实际获取的字节数初始化返回信息内容长度
-			byte[] realBuf = new byte[recvLen];
-			//按照实际获取的字节长度读取返回信息
-			System.arraycopy(recvByte, 0, realBuf, 0, recvLen);
-			//根据TCP协议获取返回信息中的字符串信息
-			dataStr = new String(realBuf, 12, realBuf.length - 12);
+			parseServerMsg(recvByte,messages);
+
 			
-/*			java.lang.StringIndexOutOfBoundsException: String index out of range: -1
-			at java.lang.String.checkBounds(String.java:381)
-			at java.lang.String.<init>(String.java:545)
-			at com.ylu.douyuDanmu.DyBulletScreenClient.getServerMsg(DyBulletScreenClient.java:197)
-			at com.ylu.douyuDanmu.KeepGetMsg.run(KeepGetMsg.java:29)*/
-			
-			//循环处理socekt黏包情况
-			while(dataStr.lastIndexOf("type@=") > 5){
-				//对黏包中最后一个数据包进行解析
-				MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
-				//分析该包的数据类型，以及根据需要进行业务操作
-				parseServerMsg(msgView.getMessageList());
-				//处理黏包中的剩余部分
-				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
-			}
-			//对单一数据包进行解析
-			MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
-			//分析该包的数据类型，以及根据需要进行业务操作
-			//parseServerMsg(msgView.getMessageList());
-			return new Message.Builder().metaData(msgView.getMessageList()).build();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		}
+		return messages;
     } 
     
-    /**
-     * 解析从服务器接受的协议，并根据需要订制业务需求
-     * @param msg
-     */
-    private void parseServerMsg(Map<String, Object> msg){
+    
+    private void parseServerMsg(byte[] recvByte, Collection<Message> messages){
+    	byte[] head = new byte[12];
+    	System.arraycopy(recvByte, 0, head, 0, 12);
     	
-    	Message message =  new Message.Builder().metaData(msg).build();
-    	
-    	if(msg.get("type") != null){
-    		
-    		//服务器反馈错误信息
-    		if(msg.get("type").equals("error")){
-    			Logger.v(msg.toString());
-				//结束心跳和获取弹幕线程
-				this.readyFlag = false;
+    	try {
+			int length = checkHead(head);
+			byte[] realBuf = new byte[length];
+			//按照实际获取的字节长度读取返回信息
+			System.arraycopy(recvByte, 0, realBuf, 0, length);
+			String dataStr = new String(realBuf, 12, realBuf.length - 12);
+			MsgView msgView = new MsgView(dataStr);
+			messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
+			if(recvByte.length - length >0){
+				byte[] leftBuf = new byte[recvByte.length - length];
+				System.arraycopy(recvByte, length, leftBuf, 0, recvByte.length - length);
+				parseServerMsg(leftBuf, messages);
 			}
-    		
-    		if(message.getType() == Type.Danmu){
-    			Logger.v(message.toString());
-    		}
-
+			
+		} catch (Exception e) {
+			Logger.v(e.getMessage());
+			String dataStr = new String(recvByte, 12, recvByte.length - 12);
+			while(dataStr.lastIndexOf("type@=") > 5){
+				MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
+				messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
+				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
+			}
+			Logger.v("消息尾 : %s", dataStr);
+			
 		}
+    	
+    	
+    	
     }
+    
+    public int checkHead(byte[] head) throws Exception{
+    	byte[] head1 = new byte[4];
+    	byte[] head2 = new byte[4];
+    	byte[] messageType = new byte[4];
+    	System.arraycopy(head, 0, head1, 0, 4);
+    	System.arraycopy(head, 4, head2, 0, 4);
+    	System.arraycopy(head, 8, messageType, 0, 4);
+
+    	//bytes2Hex方法貌似有问题！
+    	/*    	Logger.v(Formating.bytes2Hex(head1));
+    	Logger.v(Formating.bytes2Hex(head2));*/
+    	
+    	
+    	Logger.v(Formating.bytes2Hex(messageType));
+    	
+    	
+    	if(Formating.fromLH(messageType) != 690){
+    		throw new Exception("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
+    	}else if(Formating.fromLH(head1) != Formating.fromLH(head2)){
+    		throw new Exception("Bad Head!");
+    	}else{
+    		return Formating.fromLH(head1);
+    	}
+    	
+    }
+    
 }
