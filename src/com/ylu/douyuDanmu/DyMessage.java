@@ -63,6 +63,23 @@ public class DyMessage
     	return rtn;
     }
     
+    public static int parseMsgHead(byte[] head) throws Exception{
+    	byte[] head1 = new byte[4];
+    	byte[] head2 = new byte[4];
+    	byte[] messageType = new byte[4];
+    	System.arraycopy(head, 0, head1, 0, 4);
+    	System.arraycopy(head, 4, head2, 0, 4);
+    	System.arraycopy(head, 8, messageType, 0, 4);
+
+    	if(Formating.fromLH(messageType) != 690){
+    		throw new Exception("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
+    	}else if(Formating.fromLH(head1) != Formating.fromLH(head2)){
+    		throw new Exception("Bad Head!");
+    	}else{
+    		return Formating.fromLH(head1) + 4;
+    	}
+    }
+    
     /**
      * 生成加入弹幕分组池数据包
      * @param roomId

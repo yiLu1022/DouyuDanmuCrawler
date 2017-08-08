@@ -121,7 +121,7 @@ public class Message {
 
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-		sb.append(date.toString());
+		sb.append(rid);
 		sb.append("|");
 		sb.append(nn);
 		sb.append("|");
