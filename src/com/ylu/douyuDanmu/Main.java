@@ -18,9 +18,9 @@ public class Main {
 	private static final int ROOM_LPL = 288016;
 	private static final int ROOM_XZF = 222349;
 	private static final int ROOM_LCK = 522423;
-	private static final int ROOM_FG = 338281;
-	private static final int ROOM_DOTA = 58428;
-	private static final int ROOM_DOTA2 = 2339788;
+	private static final int ROOM_SS = 266055;
+	private static final int ROOM_55KAI = 138286;
+	private static final int ROOM_ZDX = 688;
 	private static final int ROOM_6324 = 6324;
 	//弹幕池分组号，海量模式使用-9999
 	private static final int groupId = -9999;
@@ -45,9 +45,9 @@ public class Main {
 		rids.add(ROOM_LPL);
 		rids.add(ROOM_XZF);
 		rids.add(ROOM_LCK);
-		rids.add(ROOM_FG);
-		rids.add(ROOM_DOTA);
-		rids.add(ROOM_DOTA2);
+		rids.add(ROOM_SS);
+		rids.add(ROOM_55KAI);
+		rids.add(ROOM_ZDX);
 		rids.add(ROOM_6324);
 		DyCrawler crawler = new DyCrawlerImpl();
 		crawler.crawlRooms(rids);
