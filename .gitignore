@@ -1,0 +1,12 @@
+#compiled files
+obj
+bin
+*.com  
+*.class  
+*.dll  
+*.exe  
+*.o  
+*.so  
+# user files
+.user
+.suo

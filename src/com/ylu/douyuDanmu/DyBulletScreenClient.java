@@ -4,12 +4,15 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.ylu.beans.Message;
 import com.ylu.beans.Message.Type;
+import com.ylu.douyuFormat.Formating;
 import com.ylu.douyuFormat.Logger;
 
 
@@ -40,19 +43,19 @@ public class DyBulletScreenClient
     //获取弹幕线程及心跳线程运行和停止标记
     private boolean readyFlag = false;
     
-    private DyBulletScreenClient(){}
+    public DyBulletScreenClient(){}
     
     /**
      * 单例获取方法，客户端单例模式访问
      * @return
      */
-    public static DyBulletScreenClient getInstance(){
+/*    public static DyBulletScreenClient getInstance(){
     	if(null == instance){
     		instance = new DyBulletScreenClient();
     	}
     	return instance;
     }
-    
+    */
     /**
      * 客户端初始化，连接弹幕服务器并登陆房间及弹幕池
      * @param roomId 房间ID
@@ -126,7 +129,7 @@ public class DyBulletScreenClient
     		
     		//解析服务器返回的登录信息
     		if(DyMessage.parseLoginRespond(recvByte)){
-    			Logger.v("Receive login response successfully!");
+    			Logger.v("Room %d login!",roomId);
             } else {
             	Logger.v("Receive login response failed!");
             }
@@ -149,7 +152,7 @@ public class DyBulletScreenClient
     		//想弹幕服务器发送加入弹幕池请求数据
     		bos.write(joinGroupRequest, 0, joinGroupRequest.length);
             bos.flush();
-            Logger.v("Send join group request successfully!");
+            Logger.v("join Room %d group request successfully!",roomId);
             
     	} catch(Exception e){
     		e.printStackTrace();
@@ -180,69 +183,66 @@ public class DyBulletScreenClient
     /**
      * 获取服务器返回信息
      */
-    public Message getServerMsg(){
+    public Collection<Message> getServerMsg(){
     	//初始化获取弹幕服务器返回信息包大小
     	byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     	//定义服务器返回信息的字符串
     	String dataStr;
+    	Collection<Message> messages = new ArrayList<Message>();
 		try {
 			//读取服务器返回信息，并获取返回信息的整体字节长度
 			int recvLen = bis.read(recvByte, 0, recvByte.length);
 			
-			//根据实际获取的字节数初始化返回信息内容长度
-			byte[] realBuf = new byte[recvLen];
-			//按照实际获取的字节长度读取返回信息
-			System.arraycopy(recvByte, 0, realBuf, 0, recvLen);
-			//根据TCP协议获取返回信息中的字符串信息
-			dataStr = new String(realBuf, 12, realBuf.length - 12);
+			parseServerMsg(recvByte,recvLen,messages);
+
 			
-/*			java.lang.StringIndexOutOfBoundsException: String index out of range: -1
-			at java.lang.String.checkBounds(String.java:381)
-			at java.lang.String.<init>(String.java:545)
-			at com.ylu.douyuDanmu.DyBulletScreenClient.getServerMsg(DyBulletScreenClient.java:197)
-			at com.ylu.douyuDanmu.KeepGetMsg.run(KeepGetMsg.java:29)*/
-			
-			//循环处理socekt黏包情况
-			while(dataStr.lastIndexOf("type@=") > 5){
-				//对黏包中最后一个数据包进行解析
-				MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
-				//分析该包的数据类型，以及根据需要进行业务操作
-				parseServerMsg(msgView.getMessageList());
-				//处理黏包中的剩余部分
-				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
-			}
-			//对单一数据包进行解析
-			MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
-			//分析该包的数据类型，以及根据需要进行业务操作
-			//parseServerMsg(msgView.getMessageList());
-			return new Message.Builder().metaData(msgView.getMessageList()).build();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		}
+		return messages;
     } 
     
-    /**
-     * 解析从服务器接受的协议，并根据需要订制业务需求
-     * @param msg
-     */
-    private void parseServerMsg(Map<String, Object> msg){
+    
+    private void parseServerMsg(byte[] recvByte,int recvLen, Collection<Message> messages){
+    	byte[] head = new byte[12];
+    	System.arraycopy(recvByte, 0, head, 0, 12);
     	
-    	Message message =  new Message.Builder().metaData(msg).build();
-    	
-    	if(msg.get("type") != null){
-    		
-    		//服务器反馈错误信息
-    		if(msg.get("type").equals("error")){
-    			Logger.v(msg.toString());
-				//结束心跳和获取弹幕线程
-				this.readyFlag = false;
+    	try {
+			int msgLength = DyMessage.parseMsgHead(head);
+			//Logger.v("Head Check OK, msgLength = %d", msgLength);
+			byte[] realBuf = new byte[msgLength];
+			//按照实际获取的字节长度读取返回信息
+			System.arraycopy(recvByte, 0, realBuf, 0, msgLength);
+			String dataStr = new String(realBuf, 12, realBuf.length - 12);
+			//Logger.v("Catch String : %s", dataStr);
+			MsgView msgView = new MsgView(dataStr);
+			messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
+			if(recvLen - msgLength >0){
+				byte[] leftBuf = new byte[recvLen - msgLength];
+				//Logger.v("%d bytes left,keep parsing",leftBuf.length);
+				System.arraycopy(recvByte, msgLength, leftBuf, 0, recvLen - msgLength);
+				parseServerMsg(leftBuf,recvLen - msgLength, messages);
+			}else{
+				//Logger.v("Perfect package, parsing finished!");
 			}
-    		
-    		if(message.getType() == Type.Danmu){
-    			Logger.v(message.toString());
-    		}
-
+			
+		} catch (Exception e) {
+			Logger.v("Unknown type message caught : %s",new String(recvByte));
+/*			Logger.v("%d bytes into Optionally parse",recvLen);
+			String dataStr = new String(recvByte, 12, recvLen - 12);
+			Logger.v("Optionally Catch String1: %s",dataStr);
+			while(dataStr.lastIndexOf("type@=") > 0){
+				MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
+				messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
+				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
+				Logger.v("Optionally Catch String: %s",dataStr);
+			}
+			Logger.v("消息尾 : %s", dataStr);*/
+			
 		}
+    	
     }
+    	
+
+    
 }
