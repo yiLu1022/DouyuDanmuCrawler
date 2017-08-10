@@ -6,14 +6,11 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.ylu.beans.Message;
-import com.ylu.beans.Message.Type;
-import com.ylu.douyuFormat.Formating;
 import com.ylu.douyuFormat.Logger;
+import com.ylu.exceptions.CheckException;
 
 
 /**
@@ -24,7 +21,6 @@ import com.ylu.douyuFormat.Logger;
  */
 public class DyBulletScreenClient
 {
-	private static DyBulletScreenClient instance;
 	
 	//第三方弹幕协议服务器地址
 	private static final String hostName = "openbarrage.douyutv.com";
@@ -187,7 +183,6 @@ public class DyBulletScreenClient
     	//初始化获取弹幕服务器返回信息包大小
     	byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     	//定义服务器返回信息的字符串
-    	String dataStr;
     	Collection<Message> messages = new ArrayList<Message>();
 		try {
 			//读取服务器返回信息，并获取返回信息的整体字节长度
@@ -204,40 +199,43 @@ public class DyBulletScreenClient
     
     
     private void parseServerMsg(byte[] recvByte,int recvLen, Collection<Message> messages){
+    	if(recvByte.length < 12){
+    		return;
+    	}
+    	
     	byte[] head = new byte[12];
     	System.arraycopy(recvByte, 0, head, 0, 12);
     	
     	try {
 			int msgLength = DyMessage.parseMsgHead(head);
-			//Logger.v("Head Check OK, msgLength = %d", msgLength);
+			if(msgLength > recvLen){
+				throw new CheckException();
+			}
 			byte[] realBuf = new byte[msgLength];
 			//按照实际获取的字节长度读取返回信息
 			System.arraycopy(recvByte, 0, realBuf, 0, msgLength);
-			String dataStr = new String(realBuf, 12, realBuf.length - 12);
+			String dataStr = new String(realBuf, 12, msgLength - 12);
 			//Logger.v("Catch String : %s", dataStr);
-			MsgView msgView = new MsgView(dataStr);
-			messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
-			if(recvLen - msgLength >0){
-				byte[] leftBuf = new byte[recvLen - msgLength];
+			messages.add(new MsgView(dataStr).message());
+			if(recvLen - msgLength  >0){
+				byte[] leftBuf = new byte[recvLen - msgLength ];
 				//Logger.v("%d bytes left,keep parsing",leftBuf.length);
-				System.arraycopy(recvByte, msgLength, leftBuf, 0, recvLen - msgLength);
+				System.arraycopy(recvByte, msgLength , leftBuf, 0, recvLen - msgLength);
 				parseServerMsg(leftBuf,recvLen - msgLength, messages);
-			}else{
-				//Logger.v("Perfect package, parsing finished!");
-			}
-			
-		} catch (Exception e) {
-			Logger.v("Unknown type message caught : %s",new String(recvByte));
-/*			Logger.v("%d bytes into Optionally parse",recvLen);
-			String dataStr = new String(recvByte, 12, recvLen - 12);
-			Logger.v("Optionally Catch String1: %s",dataStr);
-			while(dataStr.lastIndexOf("type@=") > 0){
-				MsgView msgView = new MsgView(StringUtils.substring(dataStr, dataStr.lastIndexOf("type@=")));
-				messages.add(new Message.Builder().metaData(msgView.getMessageList()).build());
+			}			
+		} catch (CheckException e) {
+			String dataStr = new String(recvByte, 0, recvLen);
+			while(dataStr.lastIndexOf("type@=") > 5){
+				String lastString = StringUtils.substring(dataStr, dataStr.lastIndexOf("type@="));
+				if(!lastString.contains("type@=ranklist")){
+					messages.add(new MsgView(lastString).message());
+				}
 				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
-				Logger.v("Optionally Catch String: %s",dataStr);
 			}
-			Logger.v("消息尾 : %s", dataStr);*/
+			Logger.v("******************************************");
+			Logger.v("Origin message: %s", new String(recvByte));
+			Logger.v("Unhandler message: %s", dataStr);
+			Logger.v("******************************************");
 			
 		}
     	

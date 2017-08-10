@@ -6,7 +6,8 @@ bin
 *.dll  
 *.exe  
 *.o  
-*.so  
+*.so
+*.txt
 # user files
 .user
 .suo

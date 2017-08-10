@@ -1,17 +1,19 @@
 package com.ylu.persistence;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.ylu.beans.Message;
-import com.ylu.douyuDanmu.ThreadDispatcher;
 import com.ylu.douyuFormat.Logger;
 
 public class DatabaseHelper {
-	
-	ThreadDispatcher tDispatcher;
-	MessageDAOMapper messageDAOMapper ;
+
+	private MessageDAOMapper messageDAOMapper ;
+	private ExecutorService singleThExecutor;
 	
 	private DatabaseHelper(){
-		tDispatcher = new ThreadDispatcher();
 		messageDAOMapper = new MessageDaoImpl();
+		singleThExecutor = Executors.newSingleThreadExecutor();
 	}
 	
 	public static DatabaseHelper getInstance(){
@@ -24,9 +26,11 @@ public class DatabaseHelper {
 	}
 	
 	public void insertMessage(final Message message){
-		tDispatcher.async(new Runnable() {
+		
+		singleThExecutor.execute(new Runnable() {
 			
 			public void run() {
+				//Logger.v("Database Thread - %s",Thread.currentThread().getName());
 				if(message.getCid() != null){
 					try{
 						messageDAOMapper.insert(new MessageDAO(message));
@@ -34,8 +38,10 @@ public class DatabaseHelper {
 						Logger.v("Cannot insert %s into database, skip.", message.getTxt());
 					}
 				}
+				
 			}
 		});
+		
 	}
-	
+
 }

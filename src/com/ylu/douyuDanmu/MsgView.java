@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.ylu.beans.Message;
+
 /**
  * @Summary: 弹幕协议解析类
  * @author: FerroD     
@@ -68,6 +70,10 @@ public class MsgView {
 		
 		return rtnMsg;
 		
+	}
+	
+	public Message message(){
+		return new Message.Builder().metaData(this.getMessageList()).build();
 	}
 	
 	/**

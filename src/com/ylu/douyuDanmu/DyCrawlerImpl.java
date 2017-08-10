@@ -2,42 +2,53 @@ package com.ylu.douyuDanmu;
 
 import java.util.Collection;
 import java.util.Hashtable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.ylu.beans.Message;
 import com.ylu.beans.Message.Type;
 import com.ylu.douyuFormat.Logger;
 import com.ylu.persistence.DatabaseHelper;
+import com.ylu.util.PerformanceMonitor;
 
 public class DyCrawlerImpl implements DyCrawler{
 	
 	private final static int GROUP_ID = -9999;
 
+	private final static int MAX_CRAWLING_THREADS = 20;
 	private Hashtable<Integer,DyBulletScreenClient> clients;
-	private Hashtable<Integer, ThreadDispatcher> threads;
-	private ThreadDispatcher execlusiveDispatcher;
+	private ExecutorService threadPool;
+	private ScheduledExecutorService heartBeatPool;
 	private DatabaseHelper db;
+	private PerformanceMonitor monitor = PerformanceMonitor.getInstance();
+	
 	
 	public DyCrawlerImpl() {
 		clients = new Hashtable<Integer, DyBulletScreenClient>();
 		db = DatabaseHelper.getInstance();
-		threads = new Hashtable<Integer, ThreadDispatcher>();
-		execlusiveDispatcher = new ThreadDispatcher();
+		threadPool = Executors.newFixedThreadPool(MAX_CRAWLING_THREADS);
+		heartBeatPool = Executors.newScheduledThreadPool(MAX_CRAWLING_THREADS);
 	}
 	
 	public void crawlRoom(int roomid) {
 		final DyBulletScreenClient client = getClient(roomid);
-		getListeningThread(roomid).async(new Runnable() {
-		//execlusiveDispatcher.async(new Runnable() {
+		threadPool.execute(new Runnable(){ 
 			public void run() {
 					keepRecvMessage(client);
 				}
 			});
-		
-		getListeningThread(roomid).async(new Runnable() {
+		heartBeatPool.scheduleAtFixedRate(new Runnable() {
+			
 			public void run() {
-				 keepAlive(client);
+				if(client.getReadyFlag()){
+					client.keepAlive();
+					monitor.report();
+				}
 			}
-		});
+		}, 0, 45, TimeUnit.SECONDS);
+		
 		
 	}
 
@@ -48,28 +59,13 @@ public class DyCrawlerImpl implements DyCrawler{
 		
 	}
 	
-	public void keepAlive(DyBulletScreenClient client){
-		 while(client.getReadyFlag())
-	        {
-	        	//发送心跳保持协议给服务器端
-	        	client.keepAlive();
-	            try
-	            {
-	            	//设置间隔45秒再发送心跳协议
-	                Thread.sleep(45000);        //keep live at least once per minute
-	            }
-	            catch (Exception e)
-	            {
-	                e.printStackTrace();
-	            }
-	        }
-	}
-	
-	public void keepRecvMessage(DyBulletScreenClient client){
+	private void keepRecvMessage(DyBulletScreenClient client){
 		while(client.getReadyFlag())
         {
-        	//获取服务器发送的弹幕信息
+			
         	Collection<Message> messages = client.getServerMsg();
+        	monitor.recv();
+        	monitor.msg(messages.size());
         	for(Message msg : messages){
 	        	if(msg.getType().equals("error")){
 	    			Logger.v(msg.toString());
@@ -88,7 +84,7 @@ public class DyCrawlerImpl implements DyCrawler{
         }
 	}
 	
-	public synchronized DyBulletScreenClient getClient(int rid){
+	private synchronized DyBulletScreenClient getClient(int rid){
 		DyBulletScreenClient client = clients.get(rid);
 		if(client != null){
 			return client;
@@ -99,18 +95,6 @@ public class DyCrawlerImpl implements DyCrawler{
 			clients.put(rid, newClient);
 			return newClient;
 		}
-	}
-	
-	public synchronized ThreadDispatcher getListeningThread(int rid){
-		ThreadDispatcher thread = threads.get(rid);
-		if(thread != null){
-			return thread;
-		}else{
-			ThreadDispatcher newThread = new ThreadDispatcher();
-			threads.put(rid, newThread);
-			return newThread;
-		}
-		
 	}
 
 }

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.ylu.douyuFormat.DyEncoder;
 import com.ylu.douyuFormat.Formating;
+import com.ylu.exceptions.CheckException;
 
 
 
@@ -63,7 +64,7 @@ public class DyMessage
     	return rtn;
     }
     
-    public static int parseMsgHead(byte[] head) throws Exception{
+    public static int parseMsgHead(byte[] head) throws CheckException{
     	byte[] head1 = new byte[4];
     	byte[] head2 = new byte[4];
     	byte[] messageType = new byte[4];
@@ -71,12 +72,17 @@ public class DyMessage
     	System.arraycopy(head, 4, head2, 0, 4);
     	System.arraycopy(head, 8, messageType, 0, 4);
 
+    	int length1 = Formating.fromLH(head1) ;
+    	int length2 = Formating.fromLH(head2) ;
+    	if((length1 != length2) || length1 < 12){
+    		throw new CheckException("Bad Head!");
+    	}
+
     	if(Formating.fromLH(messageType) != 690){
-    		throw new Exception("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
-    	}else if(Formating.fromLH(head1) != Formating.fromLH(head2)){
-    		throw new Exception("Bad Head!");
+    		return Formating.fromLH(head1) +4;
+    		//throw new Exception("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
     	}else{
-    		return Formating.fromLH(head1) + 4;
+    		return Formating.fromLH(head1) +4;
     	}
     }
     
