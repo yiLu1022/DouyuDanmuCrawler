@@ -16,7 +16,7 @@ import com.ylu.ui.DanmuTable;
 public class Main {
 	
 	private static final int ROOM_LPL = 288016;
-	private static final int ROOM_XZF = 222349;
+	private static final int ROOM_DSM = 606118;
 	private static final int ROOM_LCK = 522423;
 	private static final int ROOM_SS = 266055;
 	private static final int ROOM_55KAI = 138286;
@@ -43,15 +43,15 @@ public class Main {
 		}*/
 		Collection<Integer> rids = new ArrayList<Integer>();
 		rids.add(ROOM_LPL);
-		rids.add(ROOM_XZF);
+		rids.add(ROOM_DSM);
 		rids.add(ROOM_LCK);
 		rids.add(ROOM_SS);
 		rids.add(ROOM_55KAI);
 		rids.add(ROOM_ZDX);
 		rids.add(ROOM_6324);
 		DyCrawler crawler = new DyCrawlerImpl();
-		crawler.crawlRooms(rids);
-		//crawler.crawlRoom(ROOM_6324);
+		//crawler.crawlRooms(rids);
+		crawler.crawlRoom(ROOM_55KAI);
 		
 	}
 

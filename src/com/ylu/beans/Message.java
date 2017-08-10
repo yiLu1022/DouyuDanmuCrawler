@@ -123,9 +123,24 @@ public class Message {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rid);
 		sb.append("|");
+		sb.append(type.name());
+		sb.append("|");
 		sb.append(nn);
 		sb.append("|");
-		sb.append(txt);
+		switch (type) {
+		case Gift:
+			sb.append("送了礼物");
+			break;
+		case Danmu:
+			sb.append(txt);
+			break;
+		default:
+			break;
+		}
+
+
+
+		
 		
 		return sb.toString();
 		

@@ -62,25 +62,29 @@ public class DyCrawlerImpl implements DyCrawler{
 	private void keepRecvMessage(DyBulletScreenClient client){
 		while(client.getReadyFlag())
         {
-			
-        	Collection<Message> messages = client.getServerMsg();
-        	monitor.recv();
-        	monitor.msg(messages.size());
-        	for(Message msg : messages){
-	        	if(msg.getType().equals("error")){
-	    			Logger.v(msg.toString());
-					//结束心跳和获取弹幕线程
-					client.setReadyFlag(false);
-				}else{
-					if(msg.getType() != null){
-			    		if(msg.getType() == Type.Danmu){
-			    			Logger.v(msg.toString());
-			    			db.insertMessage(msg);
-			    		}
-	
+			try {
+				Collection<Message> messages = client.getServerMsg();
+				monitor.recv();
+	        	monitor.msg(messages.size());
+	        	for(Message msg : messages){
+		        	if(msg.getType().equals("error")){
+		    			Logger.v(msg.toString());
+						//结束心跳和获取弹幕线程
+						client.setReadyFlag(false);
+					}else{
+						if(msg.getType() != null){
+				    		if(msg.getType() == Type.Danmu){
+				    			db.insertMessage(msg);
+				    		}
+		
+						}
 					}
-				}
-        	}
+	        	}
+			} catch (Exception e) {
+				Logger.v(e.getMessage());
+				client.setReadyFlag(false);
+			}
+        	
         }
 	}
 	
