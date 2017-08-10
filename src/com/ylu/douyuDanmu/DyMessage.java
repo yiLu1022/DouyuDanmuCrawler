@@ -2,11 +2,15 @@ package com.ylu.douyuDanmu;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.ylu.beans.Message;
 import com.ylu.douyuFormat.DyEncoder;
 import com.ylu.douyuFormat.Formating;
+import com.ylu.douyuFormat.Logger;
 import com.ylu.exceptions.CheckException;
 
 
@@ -79,11 +83,99 @@ public class DyMessage
     	}
 
     	if(Formating.fromLH(messageType) != 690){
-    		return Formating.fromLH(head1) +4;
-    		//throw new Exception("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
+    		//return Formating.fromLH(head1) +4;
+    		throw new CheckException("Bad Head!" + String.valueOf(Formating.fromLH(messageType)));
     	}else{
     		return Formating.fromLH(head1) +4;
     	}
+    }
+    
+    public static byte[] parseRecvMsg(byte[] recvBytes,int recvLen, Collection<Message> messages){
+    	Collection<String> dataStrs = new ArrayList<String>();
+    	byte[] leftBytes =carefulParse(recvBytes, recvLen, dataStrs);
+    	if(leftBytes == null){
+    		for(String dataStr : dataStrs){
+    			Message message = (new MsgView(dataStr)).message(); 
+    			Logger.v(message.toString());
+    			messages.add(message);
+    		}
+    		return null;
+    	}else{
+    		//check the leftBytes again
+    		if(leftBytes.length < 12){ 
+    			//if it less than 12 bytes, maybe it's a incomplete head, keep it.
+    			return leftBytes;
+    		}
+    		try {
+    			//if it pass the check of head, it contains a good head, keep it
+    			byte[] head = new byte[12];
+            	System.arraycopy(recvBytes, 0, head, 0, 12);
+				parseMsgHead(leftBytes);
+				return leftBytes;
+			} catch (CheckException e) {
+				//other wise, it does not contain a good head, try to parse it carelessly
+				int index = DyEncoder.indexOf(leftBytes, "type@=".getBytes(),12);
+	    		if(index != -1){
+		    		byte[] firstCompleteMsg  = new byte[leftBytes.length - index +12];
+					System.arraycopy(leftBytes, index - 12, firstCompleteMsg, 0, leftBytes.length - index +12);
+					return carefulParse(firstCompleteMsg, firstCompleteMsg.length, dataStrs);
+	    		}else{
+	    			carelessParse(leftBytes, leftBytes.length, dataStrs);
+					return null;
+	    		}
+			}
+    	}
+		
+    }
+    
+    /* This method will be called only when "type@=" found in an incomplete bytes array also with 
+     * an incomplete head, it means we cannot get the length of the message. carelessParse will only
+     * parse one "type@=".
+     * Parse the bytes by searching for "type@=", from tail to head, if there are still some bytes
+     * before the first "type@=", report it then ignore it. 
+     */
+    private static void carelessParse(byte[] recvBytes,int recvLen,Collection<String> dataStrs){
+		String dataStr = new String(recvBytes, 0, recvBytes.length);
+		while(dataStr.lastIndexOf("type@=") > 5){
+			String lastString = StringUtils.substring(dataStr, dataStr.lastIndexOf("type@="));
+			dataStrs.add(lastString);
+			dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
+		}
+		Logger.v("Unhandler message--------------------> %s", dataStr);
+    }
+    
+    private static byte[] carefulParse(byte[] recvBytes,int recvLen,  Collection<String> dataStrs){
+    	try {
+        	//recvBytes doesn't reach the least length
+        	if(recvLen < 12){
+        		throw new CheckException(String.format("left Bytes %d",recvLen));
+        	}
+        	
+        	byte[] head = new byte[12];
+        	System.arraycopy(recvBytes, 0, head, 0, 12);
+			int msgLength = parseMsgHead(head);
+			
+			//if msgLength < recvLen means the recvBytes is not complete, can not continue to parse the data
+			if(msgLength > recvLen){
+				throw new CheckException(String.format("should have %d bytes, only got %d bytes",msgLength,recvLen));
+			}
+			byte[] realBuf = new byte[msgLength];
+			System.arraycopy(recvBytes, 0, realBuf, 0, msgLength);
+			String dataStr = new String(realBuf, 12, msgLength - 12);
+			dataStrs.add(dataStr);
+			//After parsing one message ahead, if there are still some bytes left.
+			if(recvLen - msgLength  >0){
+				byte[] leftBuf = new byte[recvLen - msgLength ];
+				System.arraycopy(recvBytes, msgLength , leftBuf, 0, recvLen - msgLength);
+				return carefulParse(leftBuf,recvLen - msgLength, dataStrs);
+			}
+			return null;
+		} catch (CheckException e) {
+			//Logger.v(e.getMessage());
+			byte[] leftBytes = new byte[recvLen];
+			System.arraycopy(recvBytes, 0, leftBytes, 0, recvLen);
+			return leftBytes;
+		}
     }
     
     /**

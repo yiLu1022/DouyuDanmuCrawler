@@ -1,5 +1,7 @@
 package com.ylu.douyuFormat;
 
+import javax.security.auth.kerberos.KerberosKey;
+
 /**
  * @Summary: 弹幕协议格式化类
  * @author: FerroD     
@@ -37,5 +39,26 @@ public class DyEncoder
     		buf.append(value);
     	}
     	buf.append("/");
+    }
+    
+    public static int indexOf(byte[] A, byte[] B,int offset){
+    	if(A.length < B.length){
+    		return -1;
+    	}
+    	int j = 0;
+    	for(int i= offset; i<= (A.length - B.length) ; i++){
+    		for(int k = i; j< B.length && k<A.length; j++){
+    			if(A[k] == B[j]){
+    				k++; 
+    			}else{
+    				j = 0;
+    				break;
+    			}
+    		}
+    		if(j == B.length){
+    			return i;
+    		}
+    	}
+    	return -1;
     }
 }

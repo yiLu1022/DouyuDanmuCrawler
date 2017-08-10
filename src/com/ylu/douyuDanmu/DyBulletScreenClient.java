@@ -6,11 +6,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.apache.commons.lang3.StringUtils;
-
 import com.ylu.beans.Message;
 import com.ylu.douyuFormat.Logger;
-import com.ylu.exceptions.CheckException;
 
 
 /**
@@ -30,6 +27,8 @@ public class DyBulletScreenClient
 	
 	//设置字节获取buffer的最大值
     private static final int MAX_BUFFER_LENGTH = 4096;
+
+    byte[] bufferBytes;
 
     //socket相关配置
     private Socket sock;
@@ -179,67 +178,32 @@ public class DyBulletScreenClient
     /**
      * 获取服务器返回信息
      */
-    public Collection<Message> getServerMsg(){
+    public Collection<Message> getServerMsg() throws Exception{
     	//初始化获取弹幕服务器返回信息包大小
     	byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     	//定义服务器返回信息的字符串
     	Collection<Message> messages = new ArrayList<Message>();
-		try {
-			//读取服务器返回信息，并获取返回信息的整体字节长度
-			int recvLen = bis.read(recvByte, 0, recvByte.length);
-			
-			parseServerMsg(recvByte,recvLen,messages);
 
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+		//读取服务器返回信息，并获取返回信息的整体字节长度
+		int recvLen = bis.read(recvByte, 0, recvByte.length);
+		if(recvLen < 0){
+			throw new Exception("Connection closed");
+		}
+		//If there are bytes left since last parse, then try to combine them with the bytes just read.
+		if(bufferBytes != null){
+			int bufferLen = bufferBytes.length;
+			byte[] newRecvBytes = new byte[recvLen +bufferLen];
+			System.arraycopy(bufferBytes, 0, newRecvBytes, 0, bufferLen);
+			System.arraycopy(recvByte, 0, newRecvBytes, bufferLen, recvLen);
+			//Clean buffer.
+			bufferBytes = null;
+			bufferBytes = DyMessage.parseRecvMsg(newRecvBytes, recvLen + bufferLen, messages);
+		}else{
+			bufferBytes = DyMessage.parseRecvMsg(recvByte, recvLen, messages);
 		}
 		return messages;
     } 
-    
-    
-    private void parseServerMsg(byte[] recvByte,int recvLen, Collection<Message> messages){
-    	if(recvByte.length < 12){
-    		return;
-    	}
-    	
-    	byte[] head = new byte[12];
-    	System.arraycopy(recvByte, 0, head, 0, 12);
-    	
-    	try {
-			int msgLength = DyMessage.parseMsgHead(head);
-			if(msgLength > recvLen){
-				throw new CheckException();
-			}
-			byte[] realBuf = new byte[msgLength];
-			//按照实际获取的字节长度读取返回信息
-			System.arraycopy(recvByte, 0, realBuf, 0, msgLength);
-			String dataStr = new String(realBuf, 12, msgLength - 12);
-			//Logger.v("Catch String : %s", dataStr);
-			messages.add(new MsgView(dataStr).message());
-			if(recvLen - msgLength  >0){
-				byte[] leftBuf = new byte[recvLen - msgLength ];
-				//Logger.v("%d bytes left,keep parsing",leftBuf.length);
-				System.arraycopy(recvByte, msgLength , leftBuf, 0, recvLen - msgLength);
-				parseServerMsg(leftBuf,recvLen - msgLength, messages);
-			}			
-		} catch (CheckException e) {
-			String dataStr = new String(recvByte, 0, recvLen);
-			while(dataStr.lastIndexOf("type@=") > 5){
-				String lastString = StringUtils.substring(dataStr, dataStr.lastIndexOf("type@="));
-				if(!lastString.contains("type@=ranklist")){
-					messages.add(new MsgView(lastString).message());
-				}
-				dataStr = StringUtils.substring(dataStr, 0, dataStr.lastIndexOf("type@=") - 12);
-			}
-			Logger.v("******************************************");
-			Logger.v("Origin message: %s", new String(recvByte));
-			Logger.v("Unhandler message: %s", dataStr);
-			Logger.v("******************************************");
-			
-		}
-    	
-    }
+
     	
 
     
