@@ -1,24 +1,34 @@
 package com.ylu.beans;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.ylu.douyuFormat.Logger;
 
 
 public class Message {
+	
+	//Message Type
 	private final Type type;
+	
+	
+	//Group Id
 	private final String gid;
+	//Room Id
 	private final String rid;
+	//User Id
 	private final String uid;
+	//Nickname
 	private final String nn;
+	//Fan badge
 	private final String bnn;
+	//Content - ChatMsg
 	private final String txt;
+	//Unique Id -ChatMsg
 	private final String cid;
+	//User level
 	private final String level;
+	
+	
+	//
 	private final Date date;
 	
 	
@@ -92,25 +102,22 @@ public class Message {
 		private String level;
 		
 		public Builder metaData(Map<String,Object> map){
-			nn =(String) map.get("nn");
-			String typeStr = (String) map.get("type");
-			if("chatmsg".equals(typeStr)){//弹幕消息
-				type = Type.Danmu;
-			} else if("dgb".equals(typeStr)){//赠送礼物信息
-				type = Type.Gift;
-			} else {
-				type = Type.Other;
+			type = Type.Danmu;
+			try{
+				nn =(String) map.get("nn");			
+				gid =(String) map.get("gid");
+				rid =(String) map.get("rid");
+				uid =(String) map.get("uid");
+				bnn =(String) map.get("bnn");
+				txt =(String) map.get("txt");
+				cid =(String) map.get("cid");
+				level =(String) map.get("level");
+				return this;
+			}
+			catch (Exception e) {
+				return null;
 			}
 			
-			gid =(String) map.get("gid");
-			rid =(String) map.get("rid");
-			uid =(String) map.get("uid");
-			bnn =(String) map.get("bnn");
-			txt =(String) map.get("txt");
-			cid =(String) map.get("cid");
-			level =(String) map.get("level");
-			
-			return this;
 		}
 		
 		public Message build(){
@@ -127,29 +134,12 @@ public class Message {
 		sb.append("|");
 		sb.append(nn);
 		sb.append("|");
-		switch (type) {
-		case Gift:
-			sb.append("送了礼物");
-			break;
-		case Danmu:
-			sb.append(txt);
-			break;
-		default:
-			break;
-		}
-
-
-
-		
+		sb.append(txt);
 		
 		return sb.toString();
 		
 	}
 
 
-	public enum Type{
-		Gift,
-		Danmu,
-		Other,
-	}
+
 }

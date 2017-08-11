@@ -7,11 +7,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.ylu.beans.Gift;
 import com.ylu.beans.Message;
-import com.ylu.beans.Message.Type;
 import com.ylu.douyuFormat.Logger;
 import com.ylu.persistence.DatabaseHelper;
-import com.ylu.util.PerformanceMonitor;
 
 public class DyCrawlerImpl implements DyCrawler{
 	
@@ -21,9 +20,7 @@ public class DyCrawlerImpl implements DyCrawler{
 	private Hashtable<Integer,DyBulletScreenClient> clients;
 	private ExecutorService threadPool;
 	private ScheduledExecutorService heartBeatPool;
-	private DatabaseHelper db;
-	private PerformanceMonitor monitor = PerformanceMonitor.getInstance();
-	
+	private DatabaseHelper db;	
 	
 	public DyCrawlerImpl() {
 		clients = new Hashtable<Integer, DyBulletScreenClient>();
@@ -44,7 +41,6 @@ public class DyCrawlerImpl implements DyCrawler{
 			public void run() {
 				if(client.getReadyFlag()){
 					client.keepAlive();
-					monitor.report();
 				}
 			}
 		}, 0, 45, TimeUnit.SECONDS);
@@ -63,21 +59,30 @@ public class DyCrawlerImpl implements DyCrawler{
 		while(client.getReadyFlag())
         {
 			try {
-				Collection<Message> messages = client.getServerMsg();
-				monitor.recv();
-	        	monitor.msg(messages.size());
-	        	for(Message msg : messages){
-		        	if(msg.getType().equals("error")){
-		    			Logger.v(msg.toString());
+				Collection<MsgMapper> mappers = client.getServerMsg();
+	        	for(MsgMapper mapper : mappers){
+	        		String type = (String) mapper.getMessageList().get("type");
+	        		if(type == null){
+	        			continue;
+	        		}
+	        		if(type.equals("error")){
+		    			Logger.v("error response!");
+		    			Logger.v(mapper.printStr());
 						//结束心跳和获取弹幕线程
 						client.setReadyFlag(false);
-					}else{
-						if(msg.getType() != null){
-				    		if(msg.getType() == Type.Danmu){
-				    			db.insertMessage(msg);
-				    		}
-		
+					}else if(type.equals(com.ylu.beans.Type.Danmu.getValue())){
+						Message msg = mapper.message();
+						if(msg != null){
+							Logger.v(msg.toString());
+			    			db.insertMessage(msg);
 						}
+			    	}else if(type.equals(com.ylu.beans.Type.Gift.getValue())){
+			    		Gift gift = mapper.gift();
+			    		if(gift != null){
+			    			Logger.v(gift.toString());
+			    		}
+					}else{
+						Logger.v(type);
 					}
 	        	}
 			} catch (Exception e) {

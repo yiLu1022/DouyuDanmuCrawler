@@ -25,11 +25,6 @@ public class Formating {
 	}
 	
 	public static int fromLH(byte[] bytes){
-/*		n += (bytes[3] & 0xff) << 24;
-		n += (bytes[2] & 0xff) << 16;
-		n += (bytes[1] & 0xff) << 8;
-		n += (bytes[0] & 0xff);*/
-		
 	    int value;    
 	    value = (int) ((bytes[0] & 0xFF)   
 	            | ((bytes[1] & 0xFF)<<8)   

@@ -1,22 +1,14 @@
 package com.ylu.douyuDanmu;
 
-import java.awt.List;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.ylu.beans.Message;
-import com.ylu.beans.Message.Type;
-import com.ylu.douyuFormat.Logger;
-import com.ylu.ui.DanmuTable;
 
 
 
 public class Main {
 	
 	private static final int ROOM_LPL = 288016;
-	private static final int ROOM_DSM = 606118;
+	private static final int ROOM_DOTA = 530791;
 	private static final int ROOM_LCK = 522423;
 	private static final int ROOM_SS = 266055;
 	private static final int ROOM_55KAI = 138286;
@@ -43,7 +35,6 @@ public class Main {
 		}*/
 		Collection<Integer> rids = new ArrayList<Integer>();
 		rids.add(ROOM_LPL);
-		rids.add(ROOM_DSM);
 		rids.add(ROOM_LCK);
 		rids.add(ROOM_SS);
 		rids.add(ROOM_55KAI);
@@ -51,7 +42,7 @@ public class Main {
 		rids.add(ROOM_6324);
 		DyCrawler crawler = new DyCrawlerImpl();
 		//crawler.crawlRooms(rids);
-		crawler.crawlRoom(ROOM_55KAI);
+		crawler.crawlRoom(ROOM_DOTA);
 		
 	}
 

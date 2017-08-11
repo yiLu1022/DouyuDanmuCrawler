@@ -7,7 +7,6 @@ import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.ylu.beans.Message;
 import com.ylu.douyuFormat.DyEncoder;
 import com.ylu.douyuFormat.Formating;
 import com.ylu.douyuFormat.Logger;
@@ -21,7 +20,7 @@ import com.ylu.exceptions.CheckException;
  * @date:   2016-3-12   
  * @version V1.0
  */
-public class DyMessage
+class DyMessage
 {
 	//弹幕客户端类型设置
     public final static int DY_MESSAGE_TYPE_CLIENT = 689;
@@ -31,7 +30,7 @@ public class DyMessage
      * @param roomId
      * @return
      */
-    public static byte[] getLoginRequestData(int roomId){
+    static byte[] getLoginRequestData(int roomId){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
         //添加登录协议type类型
@@ -40,7 +39,7 @@ public class DyMessage
     	enc.addItem("roomid", roomId);
 
     	//返回登录协议数据
-        return DyMessage.getByte(enc.getResult());
+        return getByte(enc.getResult());
     }
 
     /**
@@ -48,7 +47,7 @@ public class DyMessage
      * @param respond
      * @return
      */
-    public static boolean parseLoginRespond(byte[] respond){
+    static boolean parseLoginRespond(byte[] respond){
     	boolean rtn = false;
     	
     	//返回数据不正确（仅包含12位信息头，没有信息内容）
@@ -68,7 +67,7 @@ public class DyMessage
     	return rtn;
     }
     
-    public static int parseMsgHead(byte[] head) throws CheckException{
+    static int parseMsgHead(byte[] head) throws CheckException{
     	byte[] head1 = new byte[4];
     	byte[] head2 = new byte[4];
     	byte[] messageType = new byte[4];
@@ -90,14 +89,13 @@ public class DyMessage
     	}
     }
     
-    public static byte[] parseRecvMsg(byte[] recvBytes,int recvLen, Collection<Message> messages){
+    static byte[] parseRecvMsg(byte[] recvBytes,int recvLen, Collection<MsgMapper> mappers){
     	Collection<String> dataStrs = new ArrayList<String>();
     	byte[] leftBytes =carefulParse(recvBytes, recvLen, dataStrs);
     	if(leftBytes == null){
     		for(String dataStr : dataStrs){
-    			Message message = (new MsgView(dataStr)).message(); 
-    			Logger.v(message.toString());
-    			messages.add(message);
+    			MsgMapper mapper = new MsgMapper(dataStr); 
+    			mappers.add(mapper);
     		}
     		return null;
     	}else{
@@ -128,7 +126,8 @@ public class DyMessage
 		
     }
     
-    /* This method will be called only when "type@=" found in an incomplete bytes array also with 
+    /**
+     * This method will be called only when "type@=" found in an incomplete bytes array also with 
      * an incomplete head, it means we cannot get the length of the message. carelessParse will only
      * parse one "type@=".
      * Parse the bytes by searching for "type@=", from tail to head, if there are still some bytes
@@ -184,7 +183,7 @@ public class DyMessage
      * @param groupId
      * @return
      */
-    public static byte[] getJoinGroupRequest(int roomId, int groupId){
+    static byte[] getJoinGroupRequest(int roomId, int groupId){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
     	//添加加入弹幕池协议type类型
@@ -195,7 +194,7 @@ public class DyMessage
     	enc.addItem("gid", groupId);
     	
     	//返回加入弹幕池协议数据
-    	return DyMessage.getByte(enc.getResult());
+    	return getByte(enc.getResult());
     }
     
     /**
@@ -203,7 +202,7 @@ public class DyMessage
      * @param timeStamp
      * @return
      */
-    public static byte[] getKeepAliveData(int timeStamp){
+    static byte[] getKeepAliveData(int timeStamp){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
     	//添加心跳协议type类型
@@ -212,7 +211,7 @@ public class DyMessage
     	enc.addItem("tick", timeStamp);
     	
     	//返回心跳协议数据
-    	return DyMessage.getByte(enc.getResult());
+    	return getByte(enc.getResult());
     }
     
     /**

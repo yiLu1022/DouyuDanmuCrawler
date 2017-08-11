@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import com.ylu.beans.Message;
 import com.ylu.douyuFormat.Logger;
 
 
@@ -16,7 +15,7 @@ import com.ylu.douyuFormat.Logger;
  * @date:   2016-3-12   
  * @version V1.0
  */
-public class DyBulletScreenClient
+class DyBulletScreenClient
 {
 	
 	//第三方弹幕协议服务器地址
@@ -38,7 +37,7 @@ public class DyBulletScreenClient
     //获取弹幕线程及心跳线程运行和停止标记
     private boolean readyFlag = false;
     
-    public DyBulletScreenClient(){}
+    DyBulletScreenClient(){}
     
     /**
      * 单例获取方法，客户端单例模式访问
@@ -56,7 +55,7 @@ public class DyBulletScreenClient
      * @param roomId 房间ID
      * @param groupId 弹幕池分组ID
      */
-    public void init(int roomId, int groupId){
+    void init(int roomId, int groupId){
     	//连接弹幕服务器
     	this.connectServer();
     	//登陆指定房间
@@ -71,11 +70,11 @@ public class DyBulletScreenClient
      * 获取弹幕客户端就绪标记
      * @return
      */
-    public boolean getReadyFlag(){
+    synchronized boolean getReadyFlag(){
     	return readyFlag;
     }
     
-    public void setReadyFlag(boolean readyFlag){
+    synchronized void setReadyFlag(boolean readyFlag){
     	this.readyFlag = readyFlag;
     }
     
@@ -158,7 +157,7 @@ public class DyBulletScreenClient
     /**
      * 服务器心跳连接
      */
-    public void keepAlive()
+    void keepAlive()
     {
     	//获取与弹幕服务器保持心跳的请求数据包
         byte[] keepAliveRequest = DyMessage.getKeepAliveData((int)(System.currentTimeMillis() / 1000));
@@ -178,11 +177,11 @@ public class DyBulletScreenClient
     /**
      * 获取服务器返回信息
      */
-    public Collection<Message> getServerMsg() throws Exception{
+    Collection<MsgMapper> getServerMsg() throws Exception{
     	//初始化获取弹幕服务器返回信息包大小
     	byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     	//定义服务器返回信息的字符串
-    	Collection<Message> messages = new ArrayList<Message>();
+    	Collection<MsgMapper> mappers = new ArrayList<MsgMapper>();
 
 		//读取服务器返回信息，并获取返回信息的整体字节长度
 		int recvLen = bis.read(recvByte, 0, recvByte.length);
@@ -197,11 +196,11 @@ public class DyBulletScreenClient
 			System.arraycopy(recvByte, 0, newRecvBytes, bufferLen, recvLen);
 			//Clean buffer.
 			bufferBytes = null;
-			bufferBytes = DyMessage.parseRecvMsg(newRecvBytes, recvLen + bufferLen, messages);
+			bufferBytes = DyMessage.parseRecvMsg(newRecvBytes, recvLen + bufferLen, mappers);
 		}else{
-			bufferBytes = DyMessage.parseRecvMsg(recvByte, recvLen, messages);
+			bufferBytes = DyMessage.parseRecvMsg(recvByte, recvLen, mappers);
 		}
-		return messages;
+		return mappers;
     } 
 
     	

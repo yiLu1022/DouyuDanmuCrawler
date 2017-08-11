@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.ylu.beans.Gift;
 import com.ylu.beans.Message;
 
 /**
@@ -13,11 +14,11 @@ import com.ylu.beans.Message;
  * @date:   2016-3-12   
  * @version V1.0
  */
-public class MsgView {
+public class MsgMapper {
 
 	private Map<String, Object> messageList;
 
-	public MsgView(String data){
+	public MsgMapper(String data){
 		this.messageList = parseRespond(data);
 	}
 	
@@ -76,6 +77,9 @@ public class MsgView {
 		return new Message.Builder().metaData(this.getMessageList()).build();
 	}
 	
+	public Gift gift(){
+		return new Gift.Builder().metaData(this.getMessageList()).build();
+	}
 	/**
 	 * 调试信息输出
 	 * @return
