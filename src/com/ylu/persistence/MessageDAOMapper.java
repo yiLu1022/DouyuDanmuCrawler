@@ -1,5 +1,7 @@
 package com.ylu.persistence;
 
+import java.util.Collection;
+
 
 public interface MessageDAOMapper {
     int deleteByPrimaryKey(String cid);
@@ -13,4 +15,10 @@ public interface MessageDAOMapper {
     int updateByPrimaryKeySelective(MessageDAO record);
 
     int updateByPrimaryKey(MessageDAO record);
+    
+    Collection<MessageDAO> selectByUid(String uid);
+    
+    Collection<MessageDAO> selectByBnn(String bnn);
+    
+    Collection<MessageDAO> selectByLevel(String level);
 }
