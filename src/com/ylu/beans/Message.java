@@ -1,5 +1,6 @@
 package com.ylu.beans;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -129,6 +130,10 @@ public class Message {
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
 		sb.append(rid);
+		sb.append("|");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String dateString = formatter.format(date);
+		sb.append(dateString);
 		sb.append("|");
 		sb.append(type.name());
 		sb.append("|");

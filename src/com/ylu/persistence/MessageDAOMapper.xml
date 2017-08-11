@@ -159,7 +159,7 @@
     bnn varchar(10),
     txt varchar(100),
     level varchar(10),
-    mtime Date
+    mtime TIME
     )ENGINE=InnoDB DEFAULT CHARSET=utf8;
   </update>
 </mapper>
