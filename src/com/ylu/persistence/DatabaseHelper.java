@@ -2,10 +2,13 @@ package com.ylu.persistence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.ylu.beans.Message;
+import com.ylu.beans.ResultByBnn;
 import com.ylu.douyuFormat.Logger;
 
 public class DatabaseHelper {
@@ -96,6 +99,29 @@ public class DatabaseHelper {
 		return messages;
 	}
 	
+	public Map<String, Long> selectTopByBnn(final int limit){
+		Collection<Map<String, Object>> results = messageDAOMapper.selectTopByBnn(limit);
+		Map<String, Long> bnnRankMap = new HashMap<String, Long>();
+		for(Map<String, Object> result : results){
+			Logger.v(result.get("bnn") + String.valueOf( (Long)result.get("count")));
+			if(result.containsKey("bnn") && result.containsKey("count")){
+				bnnRankMap.put((String) result.get("bnn"),(Long) result.get("count"));
+			}
+		}
+		return bnnRankMap;
+	}
+	
+	public Map<String, Long> selectTopByNn(final int limit){
+		Collection<Map<String, Object>> results = messageDAOMapper.selectTopByNn(limit);
+		Map<String, Long> bnnRankMap = new HashMap<String, Long>();
+		for(Map<String, Object> result : results){
+			Logger.v(result.get("nn") + String.valueOf( (Long)result.get("count")));
+			if(result.containsKey("nn") && result.containsKey("count")){
+				bnnRankMap.put((String) result.get("nn"),(Long) result.get("count"));
+			}
+		}
+		return bnnRankMap;
+	}
 
 
 }

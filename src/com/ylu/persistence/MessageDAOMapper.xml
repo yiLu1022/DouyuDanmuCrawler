@@ -13,6 +13,16 @@
     <result column="level" jdbcType="VARCHAR" property="level" />
     <result column="mtime" jdbcType="TIME" property="mtime" />
   </resultMap>
+  
+  <resultMap type="java.util.HashMap" id="ResultByBnnMapper">
+     <result column="bnn" jdbcType="VARCHAR" property="bnn" />
+    <result column="count" jdbcType="VARCHAR" property="count" />
+  </resultMap>
+  
+    <resultMap type="java.util.HashMap" id="ResultByNnMapper">
+     <result column="nn" jdbcType="VARCHAR" property="nn" />
+    <result column="count" jdbcType="VARCHAR" property="count" />
+  </resultMap>
 
   <sql id="Base_Column_List">
     cid, type, gid, rid, uid, nn, bnn, txt, level, mtime
@@ -44,6 +54,24 @@
     <include refid="Base_Column_List" />
     from danmu_room_1
     where level = #{level,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="selectTopByBnn" parameterType="java.lang.Integer" resultMap="ResultByBnnMapper">
+    select 
+    bnn, count(*) as count
+    from danmu_room_1
+    group by bnn
+    order by count desc
+    limit #{limit,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectTopByNn" parameterType="java.lang.Integer" resultMap="ResultByNnMapper">
+    select 
+    nn, count(*) as count
+    from danmu_room_1
+    group by nn
+    order by count desc
+    limit #{limit,jdbcType=INTEGER}
   </select>
   
   
