@@ -1,16 +1,23 @@
 package com.ylu.beans;
 
+import java.util.Date;
+
 import com.google.gson.annotations.SerializedName;
 
 public class RoomInfo {
 	private String error;
 	private Data data;
+    private Date date;
 	
+
+
+
 
 	public RoomInfo(String error, Data data) {
 		super();
 		this.error = error;
 		this.data = data;
+		date = new Date();
 	}
 	
 	
@@ -35,6 +42,15 @@ public class RoomInfo {
 		this.error = error;
 	}
 
+	public Date getDate() {
+		return date;
+	}
+
+
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
 
 	
 	public String toString(){
@@ -48,7 +64,8 @@ public class RoomInfo {
 		
 	}
 	
-	private class Data{
+	public class Data{
+		@SerializedName("room_id")
 		private String roomId;
 		private String online;
 		@SerializedName("owner_weight")
