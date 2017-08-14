@@ -1,8 +1,10 @@
 package com.ylu.persistence;
 
 import java.sql.Time;
+import java.util.Calendar;
 import java.util.Date;
 
+import com.ylu.beans.Gift.Builder;
 import com.ylu.beans.Message;
 
 
@@ -40,8 +42,28 @@ public class MessageDAO {
     	this.level = message.getLevel();
     	this.mtime = new Time(message.getDate().getTime());
     }
+    
+    
 
-    public String getCid() {
+    public MessageDAO(String cid, String type, String gid, String rid,
+			String uid, String nn, String bnn, String txt, String level,
+			Time mtime) {
+		super();
+		this.cid = cid;
+		this.type = type;
+		this.gid = gid;
+		this.rid = rid;
+		this.uid = uid;
+		this.nn = nn;
+		this.bnn = bnn;
+		this.txt = txt;
+		this.level = level;
+		this.mtime = mtime;
+	}
+
+
+
+	public String getCid() {
         return cid;
     }
 
@@ -119,5 +141,13 @@ public class MessageDAO {
 
     public void setMtime(Time mtime) {
         this.mtime = mtime;
+    }
+    
+    public Message toMessage(){
+    	Message message =  new Message.Builder().bnn(bnn).cid(cid).gid(gid).level(level).nn(bnn).rid(rid).txt(txt).uid(uid).build();
+    	Date date = new Date();
+    	date.setTime(mtime.getTime());
+    	message.setDate(date);
+    	return message;
     }
 }

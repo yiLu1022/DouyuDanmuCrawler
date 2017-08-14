@@ -1,5 +1,6 @@
 package com.ylu.beans;
 
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class Message {
 	
 	
 	//
-	private final Date date;
+	private Date date;
 	
 	
 
@@ -88,11 +89,14 @@ public class Message {
 	public Date getDate(){
 		return date;
 	}
+	
+	public void setDate(Date date){
+		this.date = date;
+	}
 
 
 	public static class Builder{
 		
-		private Type type;
 		private String gid;
 		private String rid;
 		private String uid;
@@ -103,7 +107,6 @@ public class Message {
 		private String level;
 		
 		public Builder metaData(Map<String,Object> map){
-			type = Type.Danmu;
 			try{
 				nn =(String) map.get("nn");			
 				gid =(String) map.get("gid");
@@ -121,8 +124,48 @@ public class Message {
 			
 		}
 		
+		public Builder gid(String gid){
+			this.gid = gid;
+			return this;
+		}
+		
+		public Builder rid(String rid){
+			this.rid = rid;
+			return this;
+		}
+		
+		public Builder uid(String uid){
+			this.uid = uid;
+			return this;
+		}
+		
+		public Builder nn(String nn){
+			this.nn = nn;
+			return this;
+		}
+		
+		public Builder bnn(String bnn){
+			this.bnn = bnn;
+			return this;
+		}
+		
+		public Builder txt(String txt){
+			this.txt = txt;
+			return this;
+		}
+		
+		public Builder cid(String cid){
+			this.cid = cid;
+			return this;
+		}
+		
+		public Builder level(String level){
+			this.level = level;
+			return this;
+		}
+		
 		public Message build(){
-			return new Message(type, gid, rid, uid, nn, bnn, txt, cid, level); 
+			return new Message(Type.Danmu, gid, rid, uid, nn, bnn, txt, cid, level); 
 		}
 
 	}
