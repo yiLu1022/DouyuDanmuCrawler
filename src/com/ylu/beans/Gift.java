@@ -2,9 +2,8 @@ package com.ylu.beans;
 
 import java.util.Map;
 
-public class Gift {
-		
-		private final Type type;	
+public class Gift extends DyMessage{
+
 		//Group Id
 		private final String gid;
 		//Room Id
@@ -26,10 +25,9 @@ public class Gift {
 		
 		private final String gfcnt;
 
-		public Gift(String gid, String rid, String uid, String nn, String bnn, String gfid, String gs, String level,
+		private Gift(String gid, String rid, String uid, String nn, String bnn, String gfid, String gs, String level,
 				String dw, String gfcnt) {
 			super();
-			type = Type.Gift;
 			this.gid = gid;
 			this.rid = rid;
 			this.uid = uid;
@@ -41,10 +39,7 @@ public class Gift {
 			this.dw = dw;
 			this.gfcnt = gfcnt;
 		}
-		public Type geType(){
-			return type;
-		}
-
+		
 		public String getGid() {
 			return gid;
 		}
@@ -136,7 +131,7 @@ public class Gift {
 			StringBuilder sb = new StringBuilder();
 			sb.append(rid);
 			sb.append("|");
-			sb.append(type.name());
+			sb.append(getType().name());
 			sb.append("|");
 			sb.append(nn);
 			sb.append("|");
@@ -144,6 +139,11 @@ public class Gift {
 			
 			return sb.toString();
 			
+		}
+		
+		@Override
+		public DyType getType() {
+			return DyType.Gift;
 		}
 
 }

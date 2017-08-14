@@ -1,12 +1,12 @@
 #Fat Jar Configuration File
-#Tue Aug 08 18:10:15 CEST 2017
+#Fri Aug 18 17:20:40 CEST 2017
 onejar.license.required=false
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=true
-jarname=/home/ylu/workspace/douyuDanmuResearch/douyuDanmuResearch_fat.jar
+jarname=/home/ylu/workspace/douyuDanmuResearch/douyuDanmu.jar
 manifest.mergeall=true
-manifest.mainclass=com.ylu.douyuDanmu.Main
+manifest.mainclass=com.ylu.demoApp.DyDanmuMain
 manifest.file=<createnew>
 jarname.isextern=true
 onejar.expand=

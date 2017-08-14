@@ -13,7 +13,8 @@
         </environment>  
     </environments>  
 	<mappers>
-       <mapper resource="com/ylu/persistence/MessageDAOMapper.xml"/>
+       <mapper resource="com/ylu/persistence/DanmuDAOMapper.xml"/>
+       <mapper resource="com/ylu/persistence/RoomInfoDAOMapper.xml"/>
  	</mappers>
 
 </configuration>

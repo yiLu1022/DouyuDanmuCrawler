@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ylu.persistence.RoomInfoDAOMapper">
+  <resultMap id="RoomInfoDAO" type="com.ylu.dao.RoomInfoDAO">
+    <result column="fansNum" jdbcType="VARCHAR" property="fansNum" />
+    <result column="roomId" jdbcType="VARCHAR" property="roomId" />
+    <result column="online" jdbcType="VARCHAR" property="online" />
+    <result column="ownerWeight" jdbcType="VARCHAR" property="ownerWeight" />
+    <result column="time" jdbcType="TIMESTAMP" property="time" />
+  </resultMap>
+  
+   <resultMap type="java.util.HashMap" id="ResultByTimeIntervalMapper">
+      <result column="time" jdbcType="TIMESTAMP" property="time" />
+      <result column="count" jdbcType="VARCHAR" property="count" />
+   </resultMap>
+ 
+   <select id="selectByTimeInterval" parameterType="java.util.HashMap" resultMap="ResultByTimeIntervalMapper">
+    select 
+    DATE_FORMAT(FLOOR(time/#{interval})*#{interval},'%H:%i:%S') as time,
+	count(*) as count
+	from room_info_1
+	where time between #{start} and #{end}
+	group by time;
+  </select>
+    
+  <insert id="insert" parameterType="com.ylu.dao.RoomInfoDAO">
+    insert into room_info_1 (roomId, online, ownerWeight, 
+      fansNum, time)
+    values (#{roomId,jdbcType=VARCHAR}, #{online,jdbcType=VARCHAR}, #{ownerWeight,jdbcType=VARCHAR}, 
+      #{fansNum,jdbcType=VARCHAR},#{time,jdbcType=TIMESTAMP})
+  </insert>
+  
+  <update id="createTable" >
+  	CREATE TABLE IF NOT EXISTS room_info_1(
+  	id int auto_increment primary key,
+    roomId varchar(20),
+    online varchar(20),
+    ownerWeight varchar(20),
+    fansNum varchar(10),
+    time TIMESTAMP
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  </update>
+</mapper>

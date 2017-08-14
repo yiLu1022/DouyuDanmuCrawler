@@ -1,0 +1,10 @@
+选择时段内弹幕量
+select DATE_FORMAT(FLOOR(mtime/100)*100,'%H:%i') as time, count(*) as count into outfile 'd:/dys.xls' from danmu_room_3 where mtime between '2017-08-15 19:00:00' and '2017-08-16 03:55:00' group by time;
+
+
+选择时段内活跃用户
+select DATE_FORMAT(mtime,'%H:%i') as time,nn, count(*) as count from danmu_room_3 where mtime between '2017-08-15 19:00:00' and '2017-08-16 03:55:00' group by nn order by time;
+
+
+选择时段内每分钟用户活跃量
+select DATE_FORMAT(FLOOR(mtime/100)*100,'%H:%i') as timeB, count(countA) as countB from (select mtime, DATE_FORMAT(mtime,'%H:%i') as timeA,nn, count(*) as countA from danmu_room_3 where mtime between '2017-08-15 19:00:00' and '2017-08-16 03:55:00' group by nn order by timeA) as a group by timeB;

@@ -1,12 +1,9 @@
-package com.ylu.douyuDanmu;
+package com.ylu.douyuFormat;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-
-import com.ylu.beans.Gift;
-import com.ylu.beans.Message;
 
 /**
  * @Summary: 弹幕协议解析类
@@ -16,26 +13,26 @@ import com.ylu.beans.Message;
  */
 public class MsgMapper {
 
-	private Map<String, Object> messageList;
+	private Map<String, Object> messageMapper;
 
 	public MsgMapper(String data){
-		this.messageList = parseRespond(data);
+		this.messageMapper = parseRespond(data);
 	}
 	
 	/**
 	 * 获取弹幕信息对象
 	 * @return
 	 */
-	public Map<String, Object> getMessageList() {
-		return messageList;
+	public Map<String, Object> getMessageMapper() {
+		return messageMapper;
 	}
 
 	/**
 	 * 设置弹幕信息对象
 	 * @param messageList
 	 */
-	public void setMessageList(Map<String, Object> messageList) {
-		this.messageList = messageList;
+	public void setMessageMapper(Map<String, Object> messageMapper) {
+		this.messageMapper = messageMapper;
 	}
 
 	/**
@@ -59,8 +56,8 @@ public class MsgMapper {
 			//获取对应的value值
 			Object value = StringUtils.substringAfter(tmp, "@=");
 			
-			//如果value值中包含子序列化值，则进行递归分析
-			if(StringUtils.contains((String)value, "@A")){
+			//如果value值中包含子序列化值，则进行递归分析,但对弹幕内容包含@符号的不予继续解析
+			if(StringUtils.contains((String)value, "@A") & !"txt".equals(key)){
 				value = ((String)value).replaceAll("@S", "/").replaceAll("@A", "@");
 				value = this.parseRespond((String)value);
 			}
@@ -73,19 +70,12 @@ public class MsgMapper {
 		
 	}
 	
-	public Message message(){
-		return new Message.Builder().metaData(this.getMessageList()).build();
-	}
-	
-	public Gift gift(){
-		return new Gift.Builder().metaData(this.getMessageList()).build();
-	}
 	/**
 	 * 调试信息输出
 	 * @return
 	 */
 	public String printStr() {
-        return messageList.toString();
+        return messageMapper.toString();
     }
 
 }

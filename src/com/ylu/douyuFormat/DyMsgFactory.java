@@ -1,4 +1,4 @@
-package com.ylu.douyuDanmu;
+package com.ylu.douyuFormat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -7,9 +7,6 @@ import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.ylu.douyuFormat.DyEncoder;
-import com.ylu.douyuFormat.Formating;
-import com.ylu.douyuFormat.Logger;
 import com.ylu.exceptions.CheckException;
 
 
@@ -20,17 +17,17 @@ import com.ylu.exceptions.CheckException;
  * @date:   2016-3-12   
  * @version V1.0
  */
-class DyMessage
+public class DyMsgFactory
 {
+
 	//弹幕客户端类型设置
     public final static int DY_MESSAGE_TYPE_CLIENT = 689;
-    
     /**
      * 生成登录请求数据包
      * @param roomId
      * @return
      */
-    static byte[] getLoginRequestData(int roomId){
+    public static byte[] getLoginRequestData(int roomId){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
         //添加登录协议type类型
@@ -47,7 +44,7 @@ class DyMessage
      * @param respond
      * @return
      */
-    static boolean parseLoginRespond(byte[] respond){
+    public static boolean parseLoginRespond(byte[] respond){
     	boolean rtn = false;
     	
     	//返回数据不正确（仅包含12位信息头，没有信息内容）
@@ -67,7 +64,7 @@ class DyMessage
     	return rtn;
     }
     
-    static int parseMsgHead(byte[] head) throws CheckException{
+    private static int parseMsgHead(byte[] head) throws CheckException{
     	byte[] head1 = new byte[4];
     	byte[] head2 = new byte[4];
     	byte[] messageType = new byte[4];
@@ -89,7 +86,14 @@ class DyMessage
     	}
     }
     
-    static byte[] parseRecvMsg(byte[] recvBytes,int recvLen, Collection<MsgMapper> mappers){
+    /**
+     * 
+     * @param recvBytes: the bytes array to parse
+     * @param recvLen: the length of valid bytes
+     * @param mappers: A collection to collect the parsing result
+     * @return: the bytes in the end of the valid bytes, which cannot be parse this time
+     */
+    public static byte[] parseRecvMsg(byte[] recvBytes,int recvLen, Collection<MsgMapper> mappers){
     	Collection<String> dataStrs = new ArrayList<String>();
     	byte[] leftBytes =carefulParse(recvBytes, recvLen, dataStrs);
     	if(leftBytes == null){
@@ -112,7 +116,7 @@ class DyMessage
 				return leftBytes;
 			} catch (CheckException e) {
 				//other wise, it does not contain a good head, try to parse it carelessly
-				int index = DyEncoder.indexOf(leftBytes, "type@=".getBytes(),12);
+				int index = Formating.indexOf(leftBytes, "type@=".getBytes(),12);
 	    		if(index != -1){
 		    		byte[] firstCompleteMsg  = new byte[leftBytes.length - index +12];
 					System.arraycopy(leftBytes, index - 12, firstCompleteMsg, 0, leftBytes.length - index +12);
@@ -182,7 +186,7 @@ class DyMessage
      * @param groupId
      * @return
      */
-    static byte[] getJoinGroupRequest(int roomId, int groupId){
+    public static byte[] getJoinGroupRequest(int roomId, int groupId){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
     	//添加加入弹幕池协议type类型
@@ -201,7 +205,7 @@ class DyMessage
      * @param timeStamp
      * @return
      */
-    static byte[] getKeepAliveData(int timeStamp){
+    public static byte[] getKeepAliveData(int timeStamp){
     	//编码器初始化
     	DyEncoder enc = new DyEncoder();
     	//添加心跳协议type类型
@@ -239,6 +243,7 @@ class DyMessage
 
          return boutput.toByteArray();
     }
+
 }
 
 
