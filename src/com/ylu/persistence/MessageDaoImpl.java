@@ -1,12 +1,14 @@
 package com.ylu.persistence;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
-
-import com.ylu.beans.ResultByBnn;
 
 
 public class MessageDaoImpl implements MessageDAOMapper{
@@ -21,6 +23,8 @@ public class MessageDaoImpl implements MessageDAOMapper{
 	private final String STRING_SELECT_TOP_BNN = "com.ylu.persistence.MessageDAOMapper.selectTopByBnn";
 	
 	private final String STRING_SELECT_TOP_NN = "com.ylu.persistence.MessageDAOMapper.selectTopByNn";
+	
+	private final String STRING_SELECT_TIME_INTERVAL = "com.ylu.persistence.MessageDAOMapper.selectByTimeInterval";
 	
 	private SqlSession session;
 	
@@ -90,6 +94,20 @@ public class MessageDaoImpl implements MessageDAOMapper{
 		List<Map<String, Object>> resultByNns = session.selectList(STRING_SELECT_TOP_NN,limit);
 		session.commit();
 		return resultByNns;
+		
+	}
+	
+	public List<Map<String, Object>> selectByTimeInterval(Timestamp start,Timestamp end,long interval){
+		Map<String, Object> parameterMap = new HashMap<String, Object>();
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
+		String startTime = sdf.format(start);
+		String endTime = sdf.format(end);
+		parameterMap.put("start", startTime);
+		parameterMap.put("end", endTime);
+		parameterMap.put("interval", interval);
+		List<Map<String, Object>> results = session.selectList(STRING_SELECT_TIME_INTERVAL,parameterMap);
+		session.commit();
+		return results;
 		
 	}
 
