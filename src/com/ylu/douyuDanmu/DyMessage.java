@@ -170,7 +170,6 @@ class DyMessage
 			}
 			return null;
 		} catch (CheckException e) {
-			//Logger.v(e.getMessage());
 			byte[] leftBytes = new byte[recvLen];
 			System.arraycopy(recvBytes, 0, leftBytes, 0, recvLen);
 			return leftBytes;

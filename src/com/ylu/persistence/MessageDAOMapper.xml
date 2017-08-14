@@ -11,7 +11,7 @@
     <result column="bnn" jdbcType="VARCHAR" property="bnn" />
     <result column="txt" jdbcType="VARCHAR" property="txt" />
     <result column="level" jdbcType="VARCHAR" property="level" />
-    <result column="mtime" jdbcType="TIME" property="mtime" />
+    <result column="mtime" jdbcType="TIMESTAMP" property="mtime" />
   </resultMap>
   
   <resultMap type="java.util.HashMap" id="ResultByBnnMapper">
@@ -19,10 +19,15 @@
     <result column="count" jdbcType="VARCHAR" property="count" />
   </resultMap>
   
-    <resultMap type="java.util.HashMap" id="ResultByNnMapper">
-     <result column="nn" jdbcType="VARCHAR" property="nn" />
-    <result column="count" jdbcType="VARCHAR" property="count" />
-  </resultMap>
+   <resultMap type="java.util.HashMap" id="ResultByNnMapper">
+      <result column="nn" jdbcType="VARCHAR" property="nn" />
+   	  <result column="count" jdbcType="VARCHAR" property="count" />
+   </resultMap>
+ 
+   <resultMap type="java.util.HashMap" id="ResultByTimeIntervalMapper">
+      <result column="time" jdbcType="TIMESTAMP" property="time" />
+      <result column="count" jdbcType="VARCHAR" property="count" />
+   </resultMap>
 
   <sql id="Base_Column_List">
     cid, type, gid, rid, uid, nn, bnn, txt, level, mtime
@@ -73,20 +78,30 @@
     order by count desc
     limit #{limit,jdbcType=INTEGER}
   </select>
-  
+ 
+   <select id="selectByTimeInterval" parameterType="java.util.HashMap" resultMap="ResultByTimeIntervalMapper">
+    select 
+    DATE_FORMAT(FLOOR(mtime/#{interval})*#{interval},'%H:%i:%S') as time,
+	count(*) as count
+	from danmu_room_1
+	where mtime between #{start} and #{end}
+	group by time;
+  </select>
   
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from danmu_room_1
     where cid = #{cid,jdbcType=VARCHAR}
   </delete>
+  
   <insert id="insert" parameterType="com.ylu.persistence.MessageDAO">
     insert into danmu_room_1 (cid, type, gid, 
       rid, uid, nn, bnn, 
       txt, level, mtime)
     values (#{cid,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{gid,jdbcType=VARCHAR}, 
       #{rid,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, #{nn,jdbcType=VARCHAR}, #{bnn,jdbcType=VARCHAR}, 
-      #{txt,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR}, #{mtime,jdbcType=TIME})
+      #{txt,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR}, #{mtime,jdbcType=TIMESTAMP})
   </insert>
+  
   <insert id="insertSelective" parameterType="com.ylu.persistence.MessageDAO">
     insert into danmu_room_1
     <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -150,7 +165,7 @@
         #{level,jdbcType=VARCHAR},
       </if>
       <if test="mtime != null">
-        #{mtime,jdbcType=TIME},
+        #{mtime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -182,7 +197,7 @@
         level = #{level,jdbcType=VARCHAR},
       </if>
       <if test="mtime != null">
-        mtime = #{mtime,jdbcType=TIME},
+        mtime = #{mtime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where cid = #{cid,jdbcType=VARCHAR}
@@ -196,7 +211,7 @@
       bnn = #{bnn,jdbcType=VARCHAR},
       txt = #{txt,jdbcType=VARCHAR},
       level = #{level,jdbcType=VARCHAR},
-      mtime = #{mtime,jdbcType=TIME}
+      mtime = #{mtime,jdbcType=TIMESTAMP}
     where cid = #{cid,jdbcType=VARCHAR}
   </update>
   <update id="createTable" >
@@ -210,7 +225,7 @@
     bnn varchar(10),
     txt varchar(100),
     level varchar(10),
-    mtime TIME
+    mtime TIMESTAMP
     )ENGINE=InnoDB DEFAULT CHARSET=utf8;
   </update>
 </mapper>

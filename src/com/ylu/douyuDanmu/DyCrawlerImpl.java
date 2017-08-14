@@ -14,34 +14,34 @@ import com.ylu.beans.RoomInfo;
 import com.ylu.douyuFormat.Logger;
 import com.ylu.persistence.DatabaseHelper;
 
-public class DyCrawlerImpl implements DyCrawler{
-	
+public class DyCrawlerImpl implements DyCrawler {
+
 	private final static int GROUP_ID = -9999;
 
 	private final static int MAX_CRAWLING_THREADS = 20;
-	private Hashtable<Integer,DyBulletScreenClient> clients;
+	private Hashtable<Integer, DyBulletScreenClient> clients;
 	private ExecutorService threadPool;
 	private ScheduledExecutorService heartBeatPool;
-	private DatabaseHelper db;	
-	
+	private DatabaseHelper db;
+
 	public DyCrawlerImpl() {
 		clients = new Hashtable<Integer, DyBulletScreenClient>();
 		db = DatabaseHelper.getInstance();
 		threadPool = Executors.newFixedThreadPool(MAX_CRAWLING_THREADS);
 		heartBeatPool = Executors.newScheduledThreadPool(MAX_CRAWLING_THREADS);
 	}
-	
+  
 	public void crawlRoom(final int roomid) {
 		final DyBulletScreenClient client = getClient(roomid);
-		threadPool.execute(new Runnable(){ 
+		threadPool.execute(new Runnable() {
 			public void run() {
-					keepRecvMessage(client);
-				}
-			});
+				keepRecvMessage(client);
+			}
+		});
 		heartBeatPool.scheduleAtFixedRate(new Runnable() {
-			
+
 			public void run() {
-				if(client.getReadyFlag()){
+				if (client.getReadyFlag()) {
 					client.keepAlive();
 					try {
 						RoomInfo info = DyRoomInfo.getRoomInforoomID(roomid);
@@ -53,63 +53,60 @@ public class DyCrawlerImpl implements DyCrawler{
 				}
 			}
 		}, 0, 45, TimeUnit.SECONDS);
-		
-		
+
 	}
 
 	public void crawlRooms(Collection<Integer> rids) {
-		for(int rid: rids){
+		for (int rid : rids) {
 			crawlRoom(rid);
 		}
-		
+
 	}
-	
-	private void keepRecvMessage(DyBulletScreenClient client){
-		while(client.getReadyFlag())
-        {
+
+	private void keepRecvMessage(DyBulletScreenClient client) {
+		while (client.getReadyFlag()) {
 			try {
 				Collection<MsgMapper> mappers = client.getServerMsg();
-	        	for(MsgMapper mapper : mappers){
-	        		String type = (String) mapper.getMessageList().get("type");
-	        		if(type == null){
-	        			continue;
-	        		}
-	        		if(type.equals("error")){
-		    			Logger.v("error response!");
-		    			Logger.v(mapper.printStr());
-						//结束心跳和获取弹幕线程
-						client.setReadyFlag(false);
-					}else if(type.equals(com.ylu.beans.Type.Danmu.getValue())){
-						Message msg = mapper.message();
-						if(msg != null){
-							Logger.v(msg.toString());
-			    			db.insertMessage(msg);
-						}
-			    	}else if(type.equals(com.ylu.beans.Type.Gift.getValue())){
-			    		Gift gift = mapper.gift();
-			    		if(gift != null){
-			    			Logger.v(gift.toString());
-			    		}
-					}else{
-						Logger.v(type);
+				for (MsgMapper mapper : mappers) {
+					String type = (String) mapper.getMessageList().get("type");
+					if (type == null) {
+						continue;
 					}
-	        	}
+					if (type.equals("error")) {
+						Logger.v("Error: %s",mapper.printStr() );
+						// 结束心跳和获取弹幕线程
+						client.setReadyFlag(false);
+					} else if (type.equals(com.ylu.beans.Type.Danmu.getValue())) {
+						Message msg = mapper.message();
+						if (msg != null) {
+							Logger.v("Msg: %s", msg.toString());
+							db.insertMessage(msg);
+						}
+					} else if (type.equals(com.ylu.beans.Type.Gift.getValue())) {
+						Gift gift = mapper.gift();
+						if (gift != null) {
+							Logger.v("Gift: %s",gift.toString());
+						}
+					} else {
+						Logger.v("Other Type: " + type);
+					}
+				}
 			} catch (Exception e) {
 				Logger.v(e.getMessage());
 				client.setReadyFlag(false);
 			}
-        	
-        }
+
+		}
 	}
-	
-	private synchronized DyBulletScreenClient getClient(int rid){
+
+	private synchronized DyBulletScreenClient getClient(int rid) {
 		DyBulletScreenClient client = clients.get(rid);
-		if(client != null){
+		if (client != null) {
 			return client;
-		}else{
-			DyBulletScreenClient newClient = new DyBulletScreenClient(); 
+		} else {
+			DyBulletScreenClient newClient = new DyBulletScreenClient();
 			newClient.init(rid, GROUP_ID);
-			//TODO if init good, put and return, if bad, throw exception
+			// TODO if init good, put and return, if bad, throw exception
 			clients.put(rid, newClient);
 			return newClient;
 		}

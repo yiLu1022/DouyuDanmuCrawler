@@ -1,14 +1,15 @@
 package com.ylu.persistence;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.ylu.beans.Message;
-import com.ylu.beans.ResultByBnn;
 import com.ylu.douyuFormat.Logger;
 
 public class DatabaseHelper {
@@ -121,6 +122,19 @@ public class DatabaseHelper {
 			}
 		}
 		return bnnRankMap;
+	}
+	
+	public Map<String, Long> selectByTimeInterval(Date start,Date end,long interval){
+		
+		Collection<Map<String, Object>> results = messageDAOMapper.selectByTimeInterval(new Timestamp(start.getTime()), new Timestamp(end.getTime()), interval);
+		Map<String, Long> resultMap = new HashMap<String, Long>();
+		for(Map<String, Object> result : results){
+			Logger.v(result.get("time") + " : "+ String.valueOf( (Long)result.get("count")));
+			if(result.containsKey("time") && result.containsKey("count")){
+				resultMap.put((String) result.get("time"),(Long) result.get("count"));
+			}
+		}
+		return resultMap;
 	}
 
 

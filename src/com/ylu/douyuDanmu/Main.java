@@ -15,6 +15,7 @@ public class Main {
 	private static final int ROOM_55KAI = 138286;
 	private static final int ROOM_ZDX = 688;
 	private static final int ROOM_6324 = 6324;
+	private static final int ROOM_DSM = 606118;
 	//弹幕池分组号，海量模式使用-9999
 	private static final int groupId = -9999;
 	
@@ -42,11 +43,10 @@ public class Main {
 		rids.add(ROOM_ZDX);
 		rids.add(ROOM_6324);
 		DyCrawler crawler = new DyCrawlerImpl();
-		//crawler.crawlRooms(rids);
-		crawler.crawlRoom(ROOM_LPL);
-		
 
-		
+		crawler.crawlRooms(rids);
+		//crawler.crawlRoom(ROOM_55KAI);
+
 		
 	}
 

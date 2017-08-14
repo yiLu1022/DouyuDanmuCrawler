@@ -1,10 +1,9 @@
 package com.ylu.persistence;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import com.ylu.beans.ResultByBnn;
 
 
 public interface MessageDAOMapper {
@@ -29,4 +28,6 @@ public interface MessageDAOMapper {
     public List<Map<String, Object>> selectTopByBnn(int limit);
     
     public List<Map<String, Object>> selectTopByNn(int limit);
+    
+    public List<Map<String, Object>> selectByTimeInterval(Timestamp start,Timestamp end,long interval);
 }
