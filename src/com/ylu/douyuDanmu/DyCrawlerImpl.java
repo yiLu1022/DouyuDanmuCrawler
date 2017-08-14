@@ -46,6 +46,7 @@ public class DyCrawlerImpl implements DyCrawler {
 					try {
 						RoomInfo info = DyRoomInfo.getRoomInforoomID(roomid);
 						Logger.v(info.toString());
+						db.insertRoomInfo(info);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

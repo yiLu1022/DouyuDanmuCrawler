@@ -10,15 +10,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.ylu.beans.Message;
+import com.ylu.beans.RoomInfo;
 import com.ylu.douyuFormat.Logger;
 
 public class DatabaseHelper {
 
 	private MessageDAOMapper messageDAOMapper ;
+	private RoomInfoDaoImpl roomInfoDaoImpl;
 	private ExecutorService singleThExecutor;
 	
 	private DatabaseHelper(){
 		messageDAOMapper = new MessageDaoImpl();
+		roomInfoDaoImpl = new RoomInfoDaoImpl();
 		singleThExecutor = Executors.newSingleThreadExecutor();
 	}
 	
@@ -29,6 +32,21 @@ public class DatabaseHelper {
 	public static class Holder{
 		private static DatabaseHelper instance= new DatabaseHelper();
 		
+	}
+	
+	public void insertRoomInfo(final RoomInfo roomInfo){
+		singleThExecutor.execute(new Runnable() {
+			
+			public void run() {
+				try{
+					roomInfoDaoImpl.insert(new RoomInfoDAO(roomInfo));
+				}catch(Exception e){
+					e.printStackTrace();
+					Logger.v("Cannot insert %s into database, skip.", roomInfo.toString());
+				}
+				
+			}
+		});
 	}
 	
 	public void insertMessage(final Message message){
@@ -136,6 +154,8 @@ public class DatabaseHelper {
 		}
 		return resultMap;
 	}
+	
+	
 
 
 }
