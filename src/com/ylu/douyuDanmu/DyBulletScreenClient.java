@@ -1,9 +1,5 @@
 package com.ylu.douyuDanmu;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import com.ylu.douyuFormat.Logger;
@@ -29,15 +25,14 @@ class DyBulletScreenClient
 
     byte[] bufferBytes;
 
-    //socket相关配置
-    private Socket sock;
-    private BufferedOutputStream bos;
-    private BufferedInputStream bis;
+    private DyConnector connector;
     
     //获取弹幕线程及心跳线程运行和停止标记
     private boolean readyFlag = false;
     
-    DyBulletScreenClient(){}
+    DyBulletScreenClient(){
+    	connector = new DyConnector(hostName, port);
+    }
     
     /**
      * 单例获取方法，客户端单例模式访问
@@ -57,7 +52,7 @@ class DyBulletScreenClient
      */
     void init(int roomId, int groupId){
     	//连接弹幕服务器
-    	this.connectServer();
+    	connector.connect();
     	//登陆指定房间
     	this.loginRoom(roomId);
     	//加入指定的弹幕池
@@ -77,29 +72,6 @@ class DyBulletScreenClient
     synchronized void setReadyFlag(boolean readyFlag){
     	this.readyFlag = readyFlag;
     }
-    
-    /**
-     * 连接弹幕服务器
-     */
-    private void connectServer()
-    {
-        try
-        {
-        	//获取弹幕服务器访问host
-        	String host = InetAddress.getByName(hostName).getHostAddress();
-            //建立socke连接
-        	sock = new Socket(host, port);
-            //设置socket输入及输出
-            bos = new BufferedOutputStream(sock.getOutputStream());
-            bis= new BufferedInputStream(sock.getInputStream());
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        Logger.v("Server Connect Successfully!");
-    }
 
     /**
      * 登录指定房间
@@ -113,13 +85,12 @@ class DyBulletScreenClient
     	
     	try{
     		//发送登陆请求数据包给弹幕服务器
-    		bos.write(loginRequestData, 0, loginRequestData.length);
-    		bos.flush();
+    		connector.write(loginRequestData);
     		
     		//初始化弹幕服务器返回值读取包大小
     		byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
     		//获取弹幕服务器返回值
-    		bis.read(recvByte, 0, recvByte.length);
+    		connector.read(recvByte);
     		
     		//解析服务器返回的登录信息
     		if(DyMessage.parseLoginRespond(recvByte)){
@@ -144,8 +115,7 @@ class DyBulletScreenClient
     	
     	try{
     		//想弹幕服务器发送加入弹幕池请求数据
-    		bos.write(joinGroupRequest, 0, joinGroupRequest.length);
-            bos.flush();
+    		connector.write(joinGroupRequest);
             Logger.v("join Room %d group request successfully!",roomId);
             
     	} catch(Exception e){
@@ -153,6 +123,7 @@ class DyBulletScreenClient
     		Logger.v("Send join group request failed!");
     	}
     }
+   
 
     /**
      * 服务器心跳连接
@@ -164,8 +135,7 @@ class DyBulletScreenClient
 
         try{
         	//向弹幕服务器发送心跳请求数据包
-    		bos.write(keepAliveRequest, 0, keepAliveRequest.length);
-            bos.flush();
+        	connector.write(keepAliveRequest);
             Logger.v("Send keep alive request successfully!");
             
     	} catch(Exception e){
@@ -173,6 +143,8 @@ class DyBulletScreenClient
     		Logger.v("Send keep alive request failed!");
     	}
     }
+    
+    
 
     /**
      * 获取服务器返回信息
@@ -184,7 +156,7 @@ class DyBulletScreenClient
     	Collection<MsgMapper> mappers = new ArrayList<MsgMapper>();
 
 		//读取服务器返回信息，并获取返回信息的整体字节长度
-		int recvLen = bis.read(recvByte, 0, recvByte.length);
+		int recvLen = connector.read(recvByte);
 		if(recvLen < 0){
 			throw new Exception("Connection closed");
 		}

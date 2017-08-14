@@ -1,5 +1,6 @@
 package com.ylu.douyuDanmu;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.ylu.beans.Gift;
 import com.ylu.beans.Message;
+import com.ylu.beans.RoomInfo;
 import com.ylu.douyuFormat.Logger;
 import com.ylu.persistence.DatabaseHelper;
 
@@ -28,8 +30,8 @@ public class DyCrawlerImpl implements DyCrawler {
 		threadPool = Executors.newFixedThreadPool(MAX_CRAWLING_THREADS);
 		heartBeatPool = Executors.newScheduledThreadPool(MAX_CRAWLING_THREADS);
 	}
-
-	public void crawlRoom(int roomid) {
+  
+	public void crawlRoom(final int roomid) {
 		final DyBulletScreenClient client = getClient(roomid);
 		threadPool.execute(new Runnable() {
 			public void run() {
@@ -41,6 +43,13 @@ public class DyCrawlerImpl implements DyCrawler {
 			public void run() {
 				if (client.getReadyFlag()) {
 					client.keepAlive();
+					try {
+						RoomInfo info = DyRoomInfo.getRoomInforoomID(roomid);
+						Logger.v(info.toString());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}, 0, 45, TimeUnit.SECONDS);

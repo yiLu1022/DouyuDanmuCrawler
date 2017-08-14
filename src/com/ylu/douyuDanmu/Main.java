@@ -1,5 +1,6 @@
 package com.ylu.douyuDanmu;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -42,8 +43,10 @@ public class Main {
 		rids.add(ROOM_ZDX);
 		rids.add(ROOM_6324);
 		DyCrawler crawler = new DyCrawlerImpl();
+
 		crawler.crawlRooms(rids);
 		//crawler.crawlRoom(ROOM_55KAI);
+
 		
 	}
 
