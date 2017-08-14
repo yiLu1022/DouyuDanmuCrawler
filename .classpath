@@ -6,5 +6,8 @@
 	<classpathentry kind="lib" path="lib/commons-lang3-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/mybatis-3.4.4.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-3.1.14-bin.jar"/>
+	<classpathentry kind="lib" path="lib/okhttp-3.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/okio-1.13.0.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.6.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
