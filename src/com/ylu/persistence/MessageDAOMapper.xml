@@ -32,39 +32,43 @@
   <sql id="Base_Column_List">
     cid, type, gid, rid, uid, nn, bnn, txt, level, mtime
   </sql>
+  
+  <sql id="Table_Name">
+    danmu_room_3
+  </sql>
 
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="MessageDAOMapper">
     select 
     <include refid="Base_Column_List" />
-    from danmu_room_1
+    from <include refid="Table_Name" />
     where cid = #{cid,jdbcType=VARCHAR}
   </select>
   
     <select id="selectByUid" parameterType="java.lang.String" resultMap="MessageDAOMapper">
     select 
     <include refid="Base_Column_List" />
-    from danmu_room_1
+    from <include refid="Table_Name" />
     where uid = #{uid,jdbcType=VARCHAR}
   </select>
   
   <select id="selectByBnn" parameterType="java.lang.String" resultMap="MessageDAOMapper">
     select 
     <include refid="Base_Column_List" />
-    from danmu_room_1
+    from <include refid="Table_Name" />
     where bnn = #{bnn,jdbcType=VARCHAR}
   </select>
   
   <select id="selectByLevel" parameterType="java.lang.String" resultMap="MessageDAOMapper">
     select 
     <include refid="Base_Column_List" />
-    from danmu_room_1
+    from <include refid="Table_Name" />
     where level = #{level,jdbcType=VARCHAR}
   </select>
   
   <select id="selectTopByBnn" parameterType="java.lang.Integer" resultMap="ResultByBnnMapper">
     select 
     bnn, count(*) as count
-    from danmu_room_1
+    from <include refid="Table_Name" />
     group by bnn
     order by count desc
     limit #{limit,jdbcType=INTEGER}
@@ -73,7 +77,7 @@
   <select id="selectTopByNn" parameterType="java.lang.Integer" resultMap="ResultByNnMapper">
     select 
     nn, count(*) as count
-    from danmu_room_1
+    from <include refid="Table_Name" />
     group by nn
     order by count desc
     limit #{limit,jdbcType=INTEGER}
@@ -83,18 +87,18 @@
     select 
     DATE_FORMAT(FLOOR(mtime/#{interval})*#{interval},'%H:%i:%S') as time,
 	count(*) as count
-	from danmu_room_1
+	from <include refid="Table_Name" />
 	where mtime between #{start} and #{end}
 	group by time;
   </select>
   
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-    delete from danmu_room_1
+    delete from <include refid="Table_Name" />
     where cid = #{cid,jdbcType=VARCHAR}
   </delete>
   
   <insert id="insert" parameterType="com.ylu.persistence.MessageDAO">
-    insert into danmu_room_1 (cid, type, gid, 
+    insert into <include refid="Table_Name" /> (cid, type, gid, 
       rid, uid, nn, bnn, 
       txt, level, mtime)
     values (#{cid,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{gid,jdbcType=VARCHAR}, 
@@ -103,7 +107,7 @@
   </insert>
   
   <insert id="insertSelective" parameterType="com.ylu.persistence.MessageDAO">
-    insert into danmu_room_1
+    insert into <include refid="Table_Name" />
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="cid != null">
         cid,
@@ -170,7 +174,7 @@
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.ylu.persistence.MessageDAO">
-    update danmu_room_1
+    update <include refid="Table_Name" />
     <set>
       <if test="type != null">
         type = #{type,jdbcType=VARCHAR},
@@ -203,7 +207,7 @@
     where cid = #{cid,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.ylu.persistence.MessageDAO">
-    update danmu_room_1
+    update <include refid="Table_Name" />
     set type = #{type,jdbcType=VARCHAR},
       gid = #{gid,jdbcType=VARCHAR},
       uid = #{uid,jdbcType=VARCHAR},
@@ -215,7 +219,7 @@
     where cid = #{cid,jdbcType=VARCHAR}
   </update>
   <update id="createTable" >
-  	CREATE TABLE IF NOT EXISTS danmu_room_1(
+  	CREATE TABLE IF NOT EXISTS <include refid="Table_Name" />(
 	cid varchar(50) NOT NULL,
     type varchar(20),
     gid varchar(20),

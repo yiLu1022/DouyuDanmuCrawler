@@ -95,6 +95,7 @@ class DyMessage
     	if(leftBytes == null){
     		for(String dataStr : dataStrs){
     			MsgMapper mapper = new MsgMapper(dataStr); 
+    			//Logger.v((String)(mapper.getMessageList().get("txt")));
     			mappers.add(mapper);
     		}
     		return null;

@@ -47,7 +47,6 @@ public class DyCrawlerImpl implements DyCrawler {
 						RoomInfo info = DyRoomInfo.getRoomInforoomID(roomid);
 						Logger.v(info.toString());
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -85,14 +84,14 @@ public class DyCrawlerImpl implements DyCrawler {
 					} else if (type.equals(com.ylu.beans.Type.Gift.getValue())) {
 						Gift gift = mapper.gift();
 						if (gift != null) {
-							Logger.v("Gift: %s",gift.toString());
+							//Logger.v("Gift: %s",gift.toString());
 						}
 					} else {
-						Logger.v("Other Type: " + type);
+						//Logger.v("Other Type: " + type);
 					}
 				}
 			} catch (Exception e) {
-				Logger.v(e.getMessage());
+				e.printStackTrace();
 				client.setReadyFlag(false);
 			}
 

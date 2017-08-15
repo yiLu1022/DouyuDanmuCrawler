@@ -3,7 +3,11 @@ package com.ylu.beans;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+
+import com.ylu.douyuFormat.Logger;
+import com.ylu.util.Utils;
 
 
 public class Message {
@@ -119,6 +123,10 @@ public class Message {
 				return this;
 			}
 			catch (Exception e) {
+				e.printStackTrace();
+				Logger.v("-------------debug--------------------");
+				Logger.v(Utils.outputMap(map));
+				Logger.v("-------------debug--------------------");
 				return null;
 			}
 			

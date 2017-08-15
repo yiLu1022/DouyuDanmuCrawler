@@ -21,7 +21,7 @@ class DyBulletScreenClient
 	private static final int port = 8601;
 	
 	//设置字节获取buffer的最大值
-    private static final int MAX_BUFFER_LENGTH = 4096;
+    private static final int MAX_BUFFER_LENGTH = 4096*4;
 
     byte[] bufferBytes;
 

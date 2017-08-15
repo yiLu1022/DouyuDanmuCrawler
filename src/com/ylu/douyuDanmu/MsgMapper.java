@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.ylu.beans.Gift;
 import com.ylu.beans.Message;
+import com.ylu.beans.Gift.Builder;
 
 /**
  * @Summary: 弹幕协议解析类
@@ -74,7 +75,11 @@ public class MsgMapper {
 	}
 	
 	public Message message(){
-		return new Message.Builder().metaData(this.getMessageList()).build();
+		Message.Builder builder= new Message.Builder().metaData(this.getMessageList());
+		if(builder != null){
+			return builder.build();
+		}
+		return null;
 	}
 	
 	public Gift gift(){
