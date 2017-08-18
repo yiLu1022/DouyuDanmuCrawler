@@ -1,8 +1,12 @@
-package com.ylu.douyuDanmu;
+package com.ylu.douyuClient;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import com.ylu.douyuFormat.DyMsgFactory;
 import com.ylu.douyuFormat.Logger;
+import com.ylu.douyuFormat.MsgMapper;
 
 
 /**
@@ -25,34 +29,24 @@ class DyBulletScreenClient
 
     byte[] bufferBytes;
 
-    private DyConnector connector;
+    private DySocket dySocket;
     
     //获取弹幕线程及心跳线程运行和停止标记
     private boolean readyFlag = false;
     
     DyBulletScreenClient(){
-    	connector = new DyConnector(hostName, port);
+    	dySocket = new DySocket(hostName, port);
     }
     
-    /**
-     * 单例获取方法，客户端单例模式访问
-     * @return
-     */
-/*    public static DyBulletScreenClient getInstance(){
-    	if(null == instance){
-    		instance = new DyBulletScreenClient();
-    	}
-    	return instance;
-    }
-    */
     /**
      * 客户端初始化，连接弹幕服务器并登陆房间及弹幕池
      * @param roomId 房间ID
      * @param groupId 弹幕池分组ID
+     * @throws Exception Connect Exception
      */
-    void init(int roomId, int groupId){
+    synchronized void init(int roomId, int groupId) throws Exception{
     	//连接弹幕服务器
-    	connector.connect();
+    	dySocket.connect();
     	//登陆指定房间
     	this.loginRoom(roomId);
     	//加入指定的弹幕池
@@ -76,72 +70,59 @@ class DyBulletScreenClient
     /**
      * 登录指定房间
      * @param roomId
+     * @throws IOException 
      */
-    private void loginRoom(int roomId)
+    private void loginRoom(int roomId) throws IOException
     {
     	//获取弹幕服务器登陆请求数据包
-    	byte[] loginRequestData = DyMessage.getLoginRequestData(roomId);
+    	byte[] loginRequestData = DyMsgFactory.getLoginRequestData(roomId);
     	
-    	
-    	try{
-    		//发送登陆请求数据包给弹幕服务器
-    		connector.write(loginRequestData);
-    		
-    		//初始化弹幕服务器返回值读取包大小
-    		byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
-    		//获取弹幕服务器返回值
-    		connector.read(recvByte);
-    		
-    		//解析服务器返回的登录信息
-    		if(DyMessage.parseLoginRespond(recvByte)){
-    			Logger.v("Room %d login!",roomId);
-            } else {
-            	Logger.v("Receive login response failed!");
-            }
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}
+		//发送登陆请求数据包给弹幕服务器
+		dySocket.write(loginRequestData);
+		
+		//初始化弹幕服务器返回值读取包大小
+		byte[] recvByte = new byte[MAX_BUFFER_LENGTH];
+		//获取弹幕服务器返回值
+		dySocket.read(recvByte);
+		
+		//解析服务器返回的登录信息
+		if(DyMsgFactory.parseLoginRespond(recvByte)){
+			Logger.v("Room %d login!",roomId);
+        } else {
+        	Logger.v("Receive login response failed!");
+        }
+
     }
 
     /**
      * 加入弹幕分组池
      * @param roomId
      * @param groupId
+     * @throws IOException 
      */
-    private void joinGroup(int roomId, int groupId)
+    private void joinGroup(int roomId, int groupId) throws IOException
     {
     	//获取弹幕服务器加弹幕池请求数据包
-    	byte[] joinGroupRequest = DyMessage.getJoinGroupRequest(roomId, groupId);
-    	
-    	try{
-    		//想弹幕服务器发送加入弹幕池请求数据
-    		connector.write(joinGroupRequest);
-            Logger.v("join Room %d group request successfully!",roomId);
-            
-    	} catch(Exception e){
-    		e.printStackTrace();
-    		Logger.v("Send join group request failed!");
-    	}
+    	byte[] joinGroupRequest = DyMsgFactory.getJoinGroupRequest(roomId, groupId);
+		//想弹幕服务器发送加入弹幕池请求数据
+		dySocket.write(joinGroupRequest);
+        Logger.v("join Room %d group request successfully!",roomId);
     }
    
 
     /**
      * 服务器心跳连接
+     * @throws IOException 
      */
-    void keepAlive()
+    void keepAlive() throws IOException
     {
     	//获取与弹幕服务器保持心跳的请求数据包
-        byte[] keepAliveRequest = DyMessage.getKeepAliveData((int)(System.currentTimeMillis() / 1000));
+        byte[] keepAliveRequest = DyMsgFactory.getKeepAliveData((int)(System.currentTimeMillis() / 1000));
 
-        try{
-        	//向弹幕服务器发送心跳请求数据包
-        	connector.write(keepAliveRequest);
-            Logger.v("Send keep alive request successfully!");
-            
-    	} catch(Exception e){
-    		e.printStackTrace();
-    		Logger.v("Send keep alive request failed!");
-    	}
+    	//向弹幕服务器发送心跳请求数据包
+    	dySocket.write(keepAliveRequest);
+        Logger.v("Send keep alive request successfully!");
+
     }
     
     
@@ -156,7 +137,7 @@ class DyBulletScreenClient
     	Collection<MsgMapper> mappers = new ArrayList<MsgMapper>();
 
 		//读取服务器返回信息，并获取返回信息的整体字节长度
-		int recvLen = connector.read(recvByte);
+		int recvLen = dySocket.read(recvByte);
 		if(recvLen < 0){
 			throw new Exception("Connection closed");
 		}
@@ -168,9 +149,9 @@ class DyBulletScreenClient
 			System.arraycopy(recvByte, 0, newRecvBytes, bufferLen, recvLen);
 			//Clean buffer.
 			bufferBytes = null;
-			bufferBytes = DyMessage.parseRecvMsg(newRecvBytes, recvLen + bufferLen, mappers);
+			bufferBytes = DyMsgFactory.parseRecvMsg(newRecvBytes, recvLen + bufferLen, mappers);
 		}else{
-			bufferBytes = DyMessage.parseRecvMsg(recvByte, recvLen, mappers);
+			bufferBytes = DyMsgFactory.parseRecvMsg(recvByte, recvLen, mappers);
 		}
 		return mappers;
     } 

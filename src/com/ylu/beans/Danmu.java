@@ -1,16 +1,11 @@
 package com.ylu.beans;
 
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
 
-public class Message {
-	
-	//Message Type
-	private final Type type;
-	
+public class Danmu extends DyMessage{
 	
 	//Group Id
 	private final String gid;
@@ -34,11 +29,8 @@ public class Message {
 	private Date date;
 	
 	
-
-	
-	public Message(Type type, String gid, String rid, String uid, String nn,String bnn, String txt, String cid, String level) {
+	private Danmu(DyType type, String gid, String rid, String uid, String nn,String bnn, String txt, String cid, String level) {
 		super();
-		this.type = type;
 		this.gid = gid;
 		this.rid = rid;
 		this.uid = uid;
@@ -48,10 +40,6 @@ public class Message {
 		this.cid = cid;
 		this.level = level;
 		date = new Date();
-	}
-
-	public Type getType() {
-		return type;
 	}
 
 	public String getGid() {
@@ -119,6 +107,7 @@ public class Message {
 				return this;
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				return null;
 			}
 			
@@ -164,8 +153,8 @@ public class Message {
 			return this;
 		}
 		
-		public Message build(){
-			return new Message(Type.Danmu, gid, rid, uid, nn, bnn, txt, cid, level); 
+		public Danmu build(){
+			return new Danmu(DyType.Danmu, gid, rid, uid, nn, bnn, txt, cid, level); 
 		}
 
 	}
@@ -178,7 +167,7 @@ public class Message {
 		String dateString = formatter.format(date);
 		sb.append(dateString);
 		sb.append("|");
-		sb.append(type.name());
+		sb.append(getType().name());
 		sb.append("|");
 		sb.append(nn);
 		sb.append("|");
@@ -188,6 +177,10 @@ public class Message {
 		
 	}
 
+	@Override
+	public DyType getType() {
+		return DyType.Danmu;
+	}
 
 
 }

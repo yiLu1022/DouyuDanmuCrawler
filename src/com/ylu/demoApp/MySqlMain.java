@@ -1,15 +1,14 @@
-package com.ylu.persistence;
+package com.ylu.demoApp;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import com.ylu.persistence.DatabaseHelper;
 
-public class Main {
+public class MySqlMain {
 
 	public static void main(String[] args) {
 		DatabaseHelper db = DatabaseHelper.getInstance();
-		//db.selectTopByBnn(10);
+		db.selectTopByNn(20);
 		
-		String start = "2017-08-14 16:30:00";
+		/*String start = "2017-08-14 16:30:00";
 		String end = "2017-08-14 16:55:00";
 		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
@@ -17,7 +16,7 @@ public class Main {
 			db.selectByTimeInterval(sdf.parse(start), sdf.parse(end), 60);
 		} catch (ParseException e) {
 			e.printStackTrace();
-		}
+		}*/
 
 	}
 

@@ -9,18 +9,20 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.ylu.beans.Message;
+import com.ylu.beans.Danmu;
 import com.ylu.beans.RoomInfo;
+import com.ylu.dao.DanmuDAO;
+import com.ylu.dao.RoomInfoDAO;
 import com.ylu.douyuFormat.Logger;
 
 public class DatabaseHelper {
 
-	private MessageDAOMapper messageDAOMapper ;
+	private DanmuDAOMapper danmuDAOMapper ;
 	private RoomInfoDaoImpl roomInfoDaoImpl;
 	private ExecutorService singleThExecutor;
 	
 	private DatabaseHelper(){
-		messageDAOMapper = new MessageDaoImpl();
+		danmuDAOMapper = new DanmuDaoImpl();
 		roomInfoDaoImpl = new RoomInfoDaoImpl();
 		singleThExecutor = Executors.newSingleThreadExecutor();
 	}
@@ -49,55 +51,53 @@ public class DatabaseHelper {
 		});
 	}
 	
-	public void insertMessage(final Message message){
+	public void insertDanmu(final Danmu danmu){
 		
 		singleThExecutor.execute(new Runnable() {
 			
 			public void run() {
-				//Logger.v("Database Thread - %s",Thread.currentThread().getName());
-				if(message.getCid() != null){
+				if(danmu.getCid() != null){
 					try{
-						messageDAOMapper.insert(new MessageDAO(message));
+						danmuDAOMapper.insert(new DanmuDAO(danmu));
 					}catch(Exception e){
-						Logger.v("Cannot insert %s into database, skip.", message.getTxt());
+						Logger.v("Cannot insert %s into database, skip.", danmu.getTxt());
 					}
-				}
-				
+				}	
 			}
 		});
 		
 	}
 	
-	public Collection<Message> findMessageByCid(final String cid){
-		final Collection<Message> messages = new ArrayList<Message>();
+	public Collection<Danmu> findDanmuByCid(final String cid){
+		final Collection<Danmu> messages = new ArrayList<Danmu>();
 
 		if(cid!=null){
-			messages.add(messageDAOMapper.selectByPrimaryKey(cid).toMessage());
+			messages.add(danmuDAOMapper.selectByPrimaryKey(cid).toDanmu());
 		}
 				
 		return messages;
 	}
 	
-	public Collection<Message> findMessageByUid(final String uid){
-		final Collection<Message> messages = new ArrayList<Message>();
+	public Collection<Danmu> findDanmusByUid(final String uid){
+		final Collection<Danmu> messages = new ArrayList<Danmu>();
 
 		if(uid!=null){
-			Collection<MessageDAO> daos = messageDAOMapper.selectByUid(uid);
-			for(MessageDAO dao : daos){
-				messages.add(dao.toMessage());
+			Collection<DanmuDAO> daos = danmuDAOMapper.selectByUid(uid);
+			for(DanmuDAO dao : daos){
+				messages.add(dao.toDanmu());
 			}
 		}
 				
 		return messages;
 	}
 	
-	public Collection<Message> findMessageByBnn(final String bnn){
-		final Collection<Message> messages = new ArrayList<Message>();
+	public Collection<Danmu> findDanmuByBnn(final String bnn){
+		final Collection<Danmu> messages = new ArrayList<Danmu>();
 			
 		if(bnn!=null){
-			Collection<MessageDAO> daos = messageDAOMapper.selectByBnn(bnn);
-			for(MessageDAO dao : daos){
-				messages.add(dao.toMessage());
+			Collection<DanmuDAO> daos = danmuDAOMapper.selectByBnn(bnn);
+			for(DanmuDAO dao : daos){
+				messages.add(dao.toDanmu());
 			}
 		}
 				
@@ -105,13 +105,13 @@ public class DatabaseHelper {
 		return messages;
 	}
 	
-	public Collection<Message> findMessageByLevel(final String level){
-		final Collection<Message> messages = new ArrayList<Message>();
+	public Collection<Danmu> findDanmuByLevel(final String level){
+		final Collection<Danmu> messages = new ArrayList<Danmu>();
 
 		if(level!=null){
-			Collection<MessageDAO> daos = messageDAOMapper.selectByLevel(level);
-			for(MessageDAO dao : daos){
-				messages.add(dao.toMessage());
+			Collection<DanmuDAO> daos = danmuDAOMapper.selectByLevel(level);
+			for(DanmuDAO dao : daos){
+				messages.add(dao.toDanmu());
 			}
 		}
 
@@ -119,7 +119,7 @@ public class DatabaseHelper {
 	}
 	
 	public Map<String, Long> selectTopByBnn(final int limit){
-		Collection<Map<String, Object>> results = messageDAOMapper.selectTopByBnn(limit);
+		Collection<Map<String, Object>> results = danmuDAOMapper.selectTopByBnn(limit);
 		Map<String, Long> bnnRankMap = new HashMap<String, Long>();
 		for(Map<String, Object> result : results){
 			Logger.v(result.get("bnn") + String.valueOf( (Long)result.get("count")));
@@ -131,7 +131,7 @@ public class DatabaseHelper {
 	}
 	
 	public Map<String, Long> selectTopByNn(final int limit){
-		Collection<Map<String, Object>> results = messageDAOMapper.selectTopByNn(limit);
+		Collection<Map<String, Object>> results = danmuDAOMapper.selectTopByNn(limit);
 		Map<String, Long> bnnRankMap = new HashMap<String, Long>();
 		for(Map<String, Object> result : results){
 			Logger.v(result.get("nn") + String.valueOf( (Long)result.get("count")));
@@ -144,7 +144,7 @@ public class DatabaseHelper {
 	
 	public Map<String, Long> selectByTimeInterval(Date start,Date end,long interval){
 		
-		Collection<Map<String, Object>> results = messageDAOMapper.selectByTimeInterval(new Timestamp(start.getTime()), new Timestamp(end.getTime()), interval);
+		Collection<Map<String, Object>> results = danmuDAOMapper.selectByTimeInterval(new Timestamp(start.getTime()), new Timestamp(end.getTime()), interval);
 		Map<String, Long> resultMap = new HashMap<String, Long>();
 		for(Map<String, Object> result : results){
 			Logger.v(result.get("time") + " : "+ String.valueOf( (Long)result.get("count")));

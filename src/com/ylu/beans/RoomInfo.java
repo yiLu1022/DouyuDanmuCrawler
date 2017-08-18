@@ -46,22 +46,8 @@ public class RoomInfo {
 		return date;
 	}
 
-
-
 	public void setDate(Date date) {
 		this.date = date;
-	}
-
-	
-	public String toString(){
-		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("人气：%s",data.getOnline()));
-		sb.append("-");
-		sb.append(String.format("体重：%s",data.getOwnerWeight()));
-		sb.append("-");
-		sb.append(String.format("关注：%s",data.getFansNum()));
-		return sb.toString();
-		
 	}
 	
 	public class Data{
@@ -125,5 +111,18 @@ public class RoomInfo {
 		public void setFansNum(String fans_num) {
 			this.fansNum = fans_num;
 		}
+	}
+	
+
+	
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("人气：%s",data.getOnline()));
+		sb.append("-");
+		sb.append(String.format("体重：%s",data.getOwnerWeight()));
+		sb.append("-");
+		sb.append(String.format("关注：%s",data.getFansNum()));
+		return sb.toString();
+		
 	}
 }

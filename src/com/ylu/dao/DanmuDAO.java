@@ -1,17 +1,13 @@
-package com.ylu.persistence;
+package com.ylu.dao;
 
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Date;
 
-import com.ylu.beans.Gift.Builder;
-import com.ylu.beans.Message;
-import com.ylu.douyuFormat.Logger;
+import com.ylu.beans.Danmu;
 
 
 
-public class MessageDAO {
+public class DanmuDAO {
     private String cid;
 
     private String type;
@@ -32,22 +28,23 @@ public class MessageDAO {
 
     private Timestamp mtime;
     
-    public MessageDAO(Message message){
-    	this.cid = message.getCid();
-    	this.type = message.getType().name();
-    	this.gid = message.getGid();
-    	this.rid = message.getRid();
-    	this.uid = message.getUid();
-    	this.nn = message.getNn();
-    	this.bnn = message.getBnn();
-    	this.txt = message.getTxt();
-    	this.level = message.getLevel();
-    	this.mtime = new Timestamp(message.getDate().getTime());
+    public DanmuDAO(Danmu danmu){
+    	
+    	this.cid = danmu.getCid();
+    	this.type = danmu.getType().name();
+    	this.gid = danmu.getGid();
+    	this.rid = danmu.getRid();
+    	this.uid = danmu.getUid();
+    	this.nn = danmu.getNn();
+    	this.bnn = danmu.getBnn();
+    	this.txt = danmu.getTxt();
+    	this.level = danmu.getLevel();
+    	this.mtime = new Timestamp(danmu.getDate().getTime());
     }
     
     
 
-    public MessageDAO(String cid, String type, String gid, String rid,
+    public DanmuDAO(String cid, String type, String gid, String rid,
 			String uid, String nn, String bnn, String txt, String level,
 			Timestamp mtime) {
 		super();
@@ -145,11 +142,11 @@ public class MessageDAO {
         this.mtime = mtime;
     }
     
-    public Message toMessage(){
-    	Message message =  new Message.Builder().bnn(bnn).cid(cid).gid(gid).level(level).nn(bnn).rid(rid).txt(txt).uid(uid).build();
+    public Danmu toDanmu(){
+    	Danmu danmu =  new Danmu.Builder().bnn(bnn).cid(cid).gid(gid).level(level).nn(bnn).rid(rid).txt(txt).uid(uid).build();
     	Date date = new Date();
     	date.setTime(mtime.getTime());
-    	message.setDate(date);
-    	return message;
+    	danmu.setDate(date);
+    	return danmu;
     }
 }

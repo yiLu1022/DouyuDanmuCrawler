@@ -1,10 +1,5 @@
 package com.ylu.douyuFormat;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-
 public class Logger {
 	private static final String FILE_NAME = "log.txt";
 	

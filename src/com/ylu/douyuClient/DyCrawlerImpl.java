@@ -1,4 +1,4 @@
-package com.ylu.douyuDanmu;
+package com.ylu.douyuClient;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -8,13 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.ylu.beans.Gift;
-import com.ylu.beans.Message;
+import com.ylu.beans.DyMessage;
 import com.ylu.beans.RoomInfo;
 import com.ylu.douyuFormat.Logger;
-import com.ylu.persistence.DatabaseHelper;
+import com.ylu.douyuFormat.MsgMapper;
 
-public class DyCrawlerImpl implements DyCrawler {
+public class DyCrawlerImpl extends DyCrawler {
 
 	private final static int GROUP_ID = -9999;
 
@@ -22,34 +21,48 @@ public class DyCrawlerImpl implements DyCrawler {
 	private Hashtable<Integer, DyBulletScreenClient> clients;
 	private ExecutorService threadPool;
 	private ScheduledExecutorService heartBeatPool;
-	private DatabaseHelper db;
+	
 
 	public DyCrawlerImpl() {
 		clients = new Hashtable<Integer, DyBulletScreenClient>();
-		db = DatabaseHelper.getInstance();
 		threadPool = Executors.newFixedThreadPool(MAX_CRAWLING_THREADS);
 		heartBeatPool = Executors.newScheduledThreadPool(MAX_CRAWLING_THREADS);
 	}
   
-	public void crawlRoom(final int roomid) {
+	public void crawlRoom(final int roomid,final DyMessageListener listener) {
+		
+				
 		final DyBulletScreenClient client = getClient(roomid);
+		
+		if(client.getReadyFlag()){
+			Logger.v("already listening");
+		}
+		
+		try {
+			client.init(roomid, GROUP_ID);
+		} catch (Exception e) {
+			listener.onException(e);
+		}
+		
 		threadPool.execute(new Runnable() {
 			public void run() {
-				keepRecvMessage(client);
+				keepRecvMessage(client,listener);
 			}
 		});
 		heartBeatPool.scheduleAtFixedRate(new Runnable() {
 
 			public void run() {
 				if (client.getReadyFlag()) {
-					client.keepAlive();
 					try {
-						RoomInfo info = DyRoomInfo.getRoomInforoomID(roomid);
-						Logger.v(info.toString());
-						db.insertRoomInfo(info);
+						client.keepAlive();
+						RoomInfo info = DyRoomInfo.getRoomInfo(roomid);
+						if(listener != null){
+							listener.onReceiveRoomInfo(info);
+						}
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						if(listener != null){
+							listener.onException(e);
+						}
 					}
 				}
 			}
@@ -57,44 +70,19 @@ public class DyCrawlerImpl implements DyCrawler {
 
 	}
 
-	public void crawlRooms(Collection<Integer> rids) {
-		for (int rid : rids) {
-			crawlRoom(rid);
-		}
-
-	}
-
-	private void keepRecvMessage(DyBulletScreenClient client) {
+	private void keepRecvMessage(DyBulletScreenClient client,DyMessageListener listener) {
 		while (client.getReadyFlag()) {
 			try {
 				Collection<MsgMapper> mappers = client.getServerMsg();
 				for (MsgMapper mapper : mappers) {
-					String type = (String) mapper.getMessageList().get("type");
-					if (type == null) {
-						continue;
-					}
-					if (type.equals("error")) {
-						Logger.v("Error: %s",mapper.printStr() );
-						// 结束心跳和获取弹幕线程
-						client.setReadyFlag(false);
-					} else if (type.equals(com.ylu.beans.Type.Danmu.getValue())) {
-						Message msg = mapper.message();
-						if (msg != null) {
-							Logger.v("Msg: %s", msg.toString());
-							db.insertMessage(msg);
-						}
-					} else if (type.equals(com.ylu.beans.Type.Gift.getValue())) {
-						Gift gift = mapper.gift();
-						if (gift != null) {
-							Logger.v("Gift: %s",gift.toString());
-						}
-					} else {
-						Logger.v("Other Type: " + type);
+					if(listener != null){
+						listener.onReceiveMessage(new DyMessage.Builder().mapper(mapper).build());
 					}
 				}
 			} catch (Exception e) {
-				Logger.v(e.getMessage());
-				client.setReadyFlag(false);
+				if(listener != null){
+					listener.onException(e);
+				}
 			}
 
 		}
@@ -106,11 +94,14 @@ public class DyCrawlerImpl implements DyCrawler {
 			return client;
 		} else {
 			DyBulletScreenClient newClient = new DyBulletScreenClient();
-			newClient.init(rid, GROUP_ID);
-			// TODO if init good, put and return, if bad, throw exception
 			clients.put(rid, newClient);
 			return newClient;
 		}
+	}
+
+	@Override
+	public synchronized void stopCrawling(int roomId) {
+		getClient(roomId).setReadyFlag(false);
 	}
 
 }
