@@ -10,6 +10,9 @@ public class RoomInfo {
     private Date date;
 	
 
+
+
+
 	public RoomInfo(String error, Data data) {
 		super();
 		this.error = error;
@@ -42,8 +45,6 @@ public class RoomInfo {
 	public Date getDate() {
 		return date;
 	}
-
-
 
 	public void setDate(Date date) {
 		this.date = date;

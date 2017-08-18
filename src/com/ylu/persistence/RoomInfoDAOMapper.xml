@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ylu.persistence.RoomInfoDAOMapper">
+<<<<<<< HEAD
   <resultMap id="RoomInfoDAO" type="com.ylu.dao.RoomInfoDAO">
+=======
+  <resultMap id="RoomInfoDAO" type="com.ylu.persistence.RoomInfoDAO">
+>>>>>>> master
     <result column="fansNum" jdbcType="VARCHAR" property="fansNum" />
     <result column="roomId" jdbcType="VARCHAR" property="roomId" />
     <result column="online" jdbcType="VARCHAR" property="online" />
@@ -23,7 +27,11 @@
 	group by time;
   </select>
     
+<<<<<<< HEAD
   <insert id="insert" parameterType="com.ylu.dao.RoomInfoDAO">
+=======
+  <insert id="insert" parameterType="com.ylu.persistence.RoomInfoDAO">
+>>>>>>> master
     insert into room_info_1 (roomId, online, ownerWeight, 
       fansNum, time)
     values (#{roomId,jdbcType=VARCHAR}, #{online,jdbcType=VARCHAR}, #{ownerWeight,jdbcType=VARCHAR}, 

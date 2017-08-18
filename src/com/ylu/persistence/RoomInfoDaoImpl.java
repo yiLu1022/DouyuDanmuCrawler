@@ -4,6 +4,7 @@ import org.apache.ibatis.session.SqlSession;
 
 import com.ylu.dao.RoomInfoDAO;
 
+
 public class RoomInfoDaoImpl {
 
 	private final String STRING_CREATE_TABLE = "com.ylu.persistence.RoomInfoDAOMapper.createTable";
