@@ -29,6 +29,8 @@ public class DanmuDaoImpl implements DanmuDAOMapper{
 	
 	private final String STRING_SELECT_TIME_INTERVAL = "com.ylu.persistence.DanmuDAOMapper.selectByTimeInterval";
 	
+	private final String STRING_SELECT_ALL_TIME = "com.ylu.persistence.DanmuDAOMapper.selectAllByTime";
+	
 	private SqlSession session;
 	
 	public DanmuDaoImpl(){
@@ -97,6 +99,18 @@ public class DanmuDaoImpl implements DanmuDAOMapper{
 		session.commit();
 		return results;
 		
+	}
+
+	public Collection<DanmuDAO> selectAllByTime(Timestamp start, Timestamp end) {
+		Map<String, Object> parameterMap = new HashMap<String, Object>();
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
+		String startTime = sdf.format(start);
+		String endTime = sdf.format(end);
+		parameterMap.put("start", startTime);
+		parameterMap.put("end", endTime);
+		Collection<DanmuDAO> results = session.selectList(STRING_SELECT_ALL_TIME,parameterMap);
+		session.commit();
+		return results;
 	}
 
 }

@@ -25,5 +25,7 @@ public interface DanmuDAOMapper {
     
     public List<Map<String, Object>> selectTopByNn(int limit);
     
+    public Collection<DanmuDAO> selectAllByTime(Timestamp start,Timestamp end);
+    
     public List<Map<String, Object>> selectByTimeInterval(Timestamp start,Timestamp end,long interval);
 }

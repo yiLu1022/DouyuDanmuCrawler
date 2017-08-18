@@ -28,7 +28,7 @@
       <result column="time" jdbcType="TIMESTAMP" property="time" />
       <result column="count" jdbcType="VARCHAR" property="count" />
    </resultMap>
-
+   
   <sql id="Base_Column_List">
     cid, type, gid, rid, uid, nn, bnn, txt, level, mtime
   </sql>
@@ -83,6 +83,13 @@
     limit #{limit,jdbcType=INTEGER}
   </select>
  
+  <select id="selectAllByTime" parameterType="java.util.HashMap" resultMap="DanmuDAOMapper">
+    select 
+   	<include refid="Base_Column_List" />
+	from <include refid="Table_Name" />
+	where mtime between #{start} and #{end};
+  </select>
+  
    <select id="selectByTimeInterval" parameterType="java.util.HashMap" resultMap="ResultByTimeIntervalMapper">
     select 
     DATE_FORMAT(FLOOR(mtime/#{interval})*#{interval},'%H:%i:%S') as time,

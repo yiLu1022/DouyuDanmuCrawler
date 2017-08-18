@@ -155,6 +155,19 @@ public class DatabaseHelper {
 		return resultMap;
 	}
 	
+	public Collection<Danmu> selectAllByTime(Date start,Date end){
+		
+
+		final Collection<Danmu> messages = new ArrayList<Danmu>();
+
+		Collection<DanmuDAO> daos = danmuDAOMapper.selectAllByTime(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+		for(DanmuDAO dao : daos){
+			messages.add(dao.toDanmu());
+		}
+				
+		return messages;
+	}
+	
 	
 
 
