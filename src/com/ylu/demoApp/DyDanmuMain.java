@@ -70,7 +70,7 @@ public class DyDanmuMain {
 	
 	public static void main(String[] args)
 	{
-		if(args!=null && args.length == 1 && "noDatabase".equals(args[0])){
+/*		if(args!=null && args.length == 1 && "noDatabase".equals(args[0])){
 			storage = false;
 		}else if(args!= null && args.length>0){
 			System.out.println("Invalid Command!");
@@ -136,9 +136,49 @@ public class DyDanmuMain {
 			
 		}
 		scanner.close();
+		
 				
+	}*/
+		final DyCrawler crawler = new DyCrawlerImpl();
+		Collection<Integer> rids = new ArrayList<Integer>();
+		rids.add(ROOM_LPL);
+		rids.add(ROOM_LCK);
+		crawler.crawlRooms(rids, new DyMessageListener() {
+			
+			public void onReceiveRoomInfo(RoomInfo info) {
+				if(storage){
+					DatabaseHelper.getInstance().insertRoomInfo(info);
+				}
+				Logger.v(info.toString());
+				
+			}
+			
+			public void onReceiveMessage(DyMessage dyMessage) {
+				switch (dyMessage.getType()) {
+				case Danmu:
+					Logger.v(((Danmu)dyMessage).toString());
+					if(storage){
+						DatabaseHelper.getInstance().insertDanmu((Danmu)dyMessage);
+					}
+					break;
+				case Gift:
+					//Logger.v(((Gift)dyMessage).toString());
+					break;
+				default:
+					break;
+				}
+			}
+			
+			public void onException(Exception e) {
+				
+				//TODO
+			}
+
+			public void onReceiveError(int roomId) {
+				crawler.stopCrawling(roomId);
+			}
+		});
+	
 	}
-	
-	
 
 }
